@@ -234,11 +234,11 @@ namespace ShinDataUtil.Decompression.Scenario
                     while (true)
                     {
                         tempByte = FeedByte();
-                        if (tempByte >= 0x20)
+                        if ((tempByte & 0x80) != 0) // bit 7 - stop bit 
                             return rpne.Build();
                         if (tempByte == 0) 
                             rpne.AddConstant(FeedNumber());
-                        else
+                        else if (tempByte < 0x20) // operations with values >= 0x20 are ignored
                             rpne.AddOperation(tempByte);
                     }
                 case OpcodeEncodingElement.MessageId:

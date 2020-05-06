@@ -271,7 +271,7 @@ namespace ShinDataUtil.Compression.Scenario
                     EncodeNumber(bw, element.NumberSpec.Value);
                 }
             }
-            bw.Write((byte)0x20); /* end-of-expression marker */
+            bw.Write((byte)0x80); /* end-of-expression marker */
         }
 
         private static void EncodeOpcode65(BinaryWriter bw, BinaryOperationArgument value)
