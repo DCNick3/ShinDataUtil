@@ -63,7 +63,7 @@ namespace ShinDataUtil.Compression
             const int directoryOffsetMultiplier = 16;
             
             /* build index */
-            var root = new DirectoryEntry();
+            DirectoryEntry root = new DirectoryEntry();
             
             root.Children.Add((".", root));
             root.Children.Add(("..", root));
@@ -75,7 +75,7 @@ namespace ShinDataUtil.Compression
                 var currentEntry = root;
                 foreach (var part in parts[..^1])
                 {
-                    DirectoryEntry foundEntry = null;
+                    DirectoryEntry? foundEntry = null;
                     foreach (var (name, child) in currentEntry.Children)
                     {
                         if (name == part) 
@@ -96,14 +96,11 @@ namespace ShinDataUtil.Compression
                 if (currentEntry.Children.Any(_ => _.name == parts[^1]))
                     throw new ArgumentException("Duplicate file names in archive");
                 
-                currentEntry.Children.Add((parts[^1], new FileEntry
-                {
-                    Source = source
-                }));
+                currentEntry.Children.Add((parts[^1], new FileEntry(source)));
             }
 
-            var dirLinearizedEntries = new List<DirectoryEntry>();
-            var fileLinearizedEntries = new List<FileEntry>();
+            List<DirectoryEntry> dirLinearizedEntries = new List<DirectoryEntry>();
+            List<FileEntry> fileLinearizedEntries = new List<FileEntry>();
 
             void RecurLinearizeEntry(DirectoryEntry entry)
             {
@@ -248,6 +245,10 @@ namespace ShinDataUtil.Compression
 
         private class FileEntry : Entry
         {
+            public FileEntry(IFileProvider source)
+            {
+                Source = source;
+            }
             public IFileProvider Source { get; set; }
         }
         

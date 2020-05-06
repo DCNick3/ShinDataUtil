@@ -146,8 +146,8 @@ namespace ShinDataUtil.Compression.Scenario
                     case 5:
                         break;
                     case 1:
-                        bw1.Write(s.Item5.Value);
-                        WriteString(s.Item6, bw1);
+                        bw1.Write(s.Item5!.Value);
+                        WriteString(s.Item6!, bw1);
                         break;
                     default:
                         throw new InvalidDataException();

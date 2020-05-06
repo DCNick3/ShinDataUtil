@@ -12,14 +12,14 @@ namespace ShinDataUtil.Common
         public bool IsDirectory
         {
             get => _e0 >> 31 != 0;
-            set => _e0 = (uint) ((_e0 & 0x7fffffff) | ((value ? 1 : 0) << 31));
+            set => _e0 = (uint) ((_e0 & 0x7fffffff) | ((value ? 1U : 0U) << 31));
         }
 
         /* from the beginning of the entry */
         public int NameOffset
         {
             get => checked((int)(_e0 & 0x7fffffff));
-            set => _e0 = (uint)((_e0 & 0x80000000) | (value & 0x7fffffff));
+            set => _e0 = (uint)((_e0 & 0x80000000U) | (value & 0x7fffffffU));
         }
 
         public long RawDataOffset

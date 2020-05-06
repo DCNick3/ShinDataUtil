@@ -628,7 +628,7 @@ namespace ShinDataUtil.Compression.Scenario
             {
             }
 
-            protected ParseExceptionInternal(SerializationInfo? info, StreamingContext context) : base(info, context)
+            protected ParseExceptionInternal(SerializationInfo info, StreamingContext context) : base(info, context)
             {
             }
 
@@ -647,7 +647,7 @@ namespace ShinDataUtil.Compression.Scenario
             {
             }
 
-            protected ParseException(SerializationInfo? info, StreamingContext context) : base(info, context)
+            protected ParseException(SerializationInfo info, StreamingContext context) : base(info, context)
             {
             }
 

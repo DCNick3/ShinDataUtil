@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Immutable;
 using System.IO;
 using Newtonsoft.Json;
@@ -40,6 +41,6 @@ namespace ShinDataUtil.Scenario
             JsonSerializer.Create().Serialize(new JsonTextWriter(destination), this);
 
         public static ScenarioHeadInfo DeserializeFrom(TextReader source) =>
-            JsonSerializer.Create().Deserialize<ScenarioHeadInfo>(new JsonTextReader(source));
+            JsonSerializer.Create().Deserialize<ScenarioHeadInfo>(new JsonTextReader(source)) ?? throw new InvalidOperationException();
     }
 }
