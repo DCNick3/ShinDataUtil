@@ -17,21 +17,21 @@ Subcommands:
 
 - `rom-extract-all-with-decode [--regex=filename_regex] romname destination-directory` - extract files (optionally filtered by regex) from rom, decoding known formats
 
-- `rom-pic-decode romname picname outname` - decode a PIC file from rom to png
+- `[rom-]pic-decode [romname] picname outname` - decode a PIC file (optionally from rom) to png
 
-- `rom-sound-remux romname nxaname outname` - remux a NXA file from rom to opus
+- `[rom-]sound-remux [romname] nxaname outname` - remux a NXA file (optionally from rom)to opus
 
-- `rom-font-extract romname fntname outname` - extract an FNT file from rom to a bunch of png files
+- `[rom-]font-extract [romname] fntname outname` - extract an FNT file (optionally from rom) to a bunch of png files
 
-- `rom-txa-extract romname txaname outname` - extract an TXA file from rom to a bunch of png files
+- `[rom-]txa-extract [romname] txaname outname` - extract an TXA file (optionally from rom) to a bunch of png files
 
-- `rom-sysse-extract romname syssename outname` - extract a sysse.bin file from rom to a bunch of wav files
+- `[rom-]sysse-extract [romname] syssename outname` - extract a sysse.bin file (optionally from rom) to a bunch of wav files
 
-- `rom-bustup-extract romname bustupname outname` - extract a BUP file from rom to a bunch of png files
+- `[rom-]bustup-extract [romname] bustupname outname` - extract a BUP file (optionally from rom) to a bunch of png files
 
-- `rom-mask-extract romname mskname outname` - extract a MSK file from rom to a png file
+- `[rom-]mask-extract [romname] mskname outname` - extract a MSK file (optionally from rom) to a png file
 
-- `rom-scenario-decompile romname snrname outname` - disassemble an SNR file from rom to a listing, a json file containg head data and raw dump of code section
+- `[rom-]scenario-decompile [romname] snrname outname` - disassemble an SNR file (optionally from rom) to a listing, a json file containg head data and raw dump of code section
 
 - `scenario-build asmdir outname` - build an SNR file from a listing and json file containing head data (same structure as decompiler)
 
