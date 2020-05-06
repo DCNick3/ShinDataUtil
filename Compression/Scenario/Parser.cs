@@ -454,7 +454,7 @@ namespace ShinDataUtil.Compression.Scenario
                     var t = ParseNumber(ref line);
                     return new Instruction(Opcode.bo, new dynamic[]
                     {
-                        Opcode65.MovValue(destination, t)
+                        BinaryOperationArgument.MovValue(destination, t)
                     }.ToImmutableArray());
                 }
                 var v = ParseInteger(ref line);
@@ -465,7 +465,7 @@ namespace ShinDataUtil.Compression.Scenario
                     
                     return new Instruction(Opcode.bo, new dynamic[]
                     {
-                        Opcode65.MovZero(destination)
+                        BinaryOperationArgument.MovZero(destination)
                     }.ToImmutableArray());
                 }
                 ExpectFixedFeed(ref line, 'n');
@@ -473,22 +473,22 @@ namespace ShinDataUtil.Compression.Scenario
                 var num = NumberSpec.FromConstant((int)v);
                 return new Instruction(Opcode.bo, new dynamic[]
                 {
-                    Opcode65.MovValue(destination, num)
+                    BinaryOperationArgument.MovValue(destination, num)
                 }.ToImmutableArray());
             }
 
             var type = opcodeName switch
             {
-                "add" => Opcode65.Operation.Add,
-                "sub" => Opcode65.Operation.Subtract,
-                "mul" => Opcode65.Operation.Multiply,
-                "div" => Opcode65.Operation.Divide,
-                "rem" => Opcode65.Operation.Remainder,
-                "and" => Opcode65.Operation.BitwiseAnd,
-                "or" => Opcode65.Operation.BitwiseOr,
-                "xor" => Opcode65.Operation.BitwiseXor,
-                "lsh" => Opcode65.Operation.LeftShift,
-                "rsh" => Opcode65.Operation.RightShift,
+                "add" => BinaryOperationArgument.Operation.Add,
+                "sub" => BinaryOperationArgument.Operation.Subtract,
+                "mul" => BinaryOperationArgument.Operation.Multiply,
+                "div" => BinaryOperationArgument.Operation.Divide,
+                "rem" => BinaryOperationArgument.Operation.Remainder,
+                "and" => BinaryOperationArgument.Operation.BitwiseAnd,
+                "or" => BinaryOperationArgument.Operation.BitwiseOr,
+                "xor" => BinaryOperationArgument.Operation.BitwiseXor,
+                "lsh" => BinaryOperationArgument.Operation.LeftShift,
+                "rsh" => BinaryOperationArgument.Operation.RightShift,
                 _ => throw new ArgumentException(nameof(opcodeName)),
             };
             
@@ -507,12 +507,12 @@ namespace ShinDataUtil.Compression.Scenario
             if (arg1.Address == destination)
                 return new Instruction(Opcode.bo, new dynamic[]
                 {
-                    new Opcode65(type, destination, arg2),
+                    new BinaryOperationArgument(type, destination, arg2),
                 }.ToImmutableArray());
             
             return new Instruction(Opcode.bo, new dynamic[]
             {
-                new Opcode65(type, destination, arg1, arg2),
+                new BinaryOperationArgument(type, destination, arg1, arg2),
             }.ToImmutableArray());
             
         }

@@ -27,14 +27,14 @@ namespace ShinDataUtil.Scenario
                 "bmn" => OpcodeEncodingElement.BitmappedNumberArguments,
                 "rpn" => OpcodeEncodingElement.PostfixNotationExpression, 
                 "mi" => OpcodeEncodingElement.MessageId,
-                "65" => OpcodeEncodingElement.Opcode65,
+                "bo" => OpcodeEncodingElement.BinaryOperationArgument,
                 _ => throw new ArgumentException()
             };
         }
 
         private const string Encodings = @"
 EXIT=b,n!
-bo=65
+bo=bo
 exp=a,rpn
 jc=b,n,n,j
 j=j!

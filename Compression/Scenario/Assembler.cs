@@ -94,13 +94,13 @@ namespace ShinDataUtil.Compression.Scenario
                     return 1 + ((ImmutableArray<NumberSpec>) value).Select(_ => _.Value == 0 ? 0 : NumberLength(_))
                         .Sum();
                 case OpcodeEncodingElement.PostfixNotationExpression: return RpneLength((PostfixExpression)value);
-                case OpcodeEncodingElement.Opcode65: return Opcode65Length((Opcode65)value);
+                case OpcodeEncodingElement.BinaryOperationArgument: return Opcode65Length((BinaryOperationArgument)value);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(encoding), encoding, null);
             }
         }
 
-        private static int Opcode65Length(Opcode65 value)
+        private static int Opcode65Length(BinaryOperationArgument value)
         {
             if (value.ShouldHaveFirstArgumentSeparatelyEncoded)
                 return 1 + 2 + NumberLength(value.Argument1) + NumberLength(value.Argument2);
@@ -274,7 +274,7 @@ namespace ShinDataUtil.Compression.Scenario
             bw.Write((byte)0x20); /* end-of-expression marker */
         }
 
-        private static void EncodeOpcode65(BinaryWriter bw, Opcode65 value)
+        private static void EncodeOpcode65(BinaryWriter bw, BinaryOperationArgument value)
         {
             if (value.ShouldHaveFirstArgumentSeparatelyEncoded)
             {
@@ -321,7 +321,7 @@ namespace ShinDataUtil.Compression.Scenario
                 case OpcodeEncodingElement.BitmappedNumberArguments:
                     EncodeBitmappedNumberArguments(bw, (ImmutableArray<NumberSpec>) value); break;
                 case OpcodeEncodingElement.PostfixNotationExpression: EncodeRpne(bw, (PostfixExpression) value); break;
-                case OpcodeEncodingElement.Opcode65: EncodeOpcode65(bw, (Opcode65) value); break;
+                case OpcodeEncodingElement.BinaryOperationArgument: EncodeOpcode65(bw, (BinaryOperationArgument) value); break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(encoding), encoding, null);
             }

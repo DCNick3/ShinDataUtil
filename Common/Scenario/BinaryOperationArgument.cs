@@ -3,9 +3,9 @@ using ShinDataUtil.Common.Scenario;
 
 namespace ShinDataUtil.Scenario
 {
-    public class Opcode65
+    public class BinaryOperationArgument
     {
-        public Opcode65(byte type, ushort destinationAddress, NumberSpec argument2)
+        public BinaryOperationArgument(byte type, ushort destinationAddress, NumberSpec argument2)
         {
             type = (byte) (type & 0x7f);
             Trace.Assert(type <= 11);
@@ -15,7 +15,7 @@ namespace ShinDataUtil.Scenario
             Argument2 = argument2;
         }
 
-        public Opcode65(byte type, ushort destinationAddress, NumberSpec argument1, NumberSpec argument2)
+        public BinaryOperationArgument(byte type, ushort destinationAddress, NumberSpec argument1, NumberSpec argument2)
         {
             type = (byte) (type & 0x7f);
             Trace.Assert(type <= 11);
@@ -25,7 +25,7 @@ namespace ShinDataUtil.Scenario
             Argument2 = argument2;
         }
 
-        public Opcode65(Operation type, ushort destinationAddress, NumberSpec argument2)
+        public BinaryOperationArgument(Operation type, ushort destinationAddress, NumberSpec argument2)
         {
             Type = type;
             DestinationAddress = destinationAddress;
@@ -33,7 +33,7 @@ namespace ShinDataUtil.Scenario
             Argument2 = argument2;
         }
 
-        public Opcode65(Operation type, ushort destinationAddress, NumberSpec argument1, NumberSpec argument2)
+        public BinaryOperationArgument(Operation type, ushort destinationAddress, NumberSpec argument1, NumberSpec argument2)
         {
             Type = type;
             DestinationAddress = destinationAddress;
@@ -41,14 +41,14 @@ namespace ShinDataUtil.Scenario
             Argument2 = argument2;
         }
         
-        public static Opcode65 MovZero(ushort address)
+        public static BinaryOperationArgument MovZero(ushort address)
         {
-            return new Opcode65((byte)Operation.Zero, address, NumberSpec.FromConstant(0));
+            return new BinaryOperationArgument((byte)Operation.Zero, address, NumberSpec.FromConstant(0));
         }
 
-        public static Opcode65 MovValue(ushort address, NumberSpec number)
+        public static BinaryOperationArgument MovValue(ushort address, NumberSpec number)
         {
-            return new Opcode65((byte)Operation.Argument2, address, number);
+            return new BinaryOperationArgument((byte)Operation.Argument2, address, number);
         }
 
         public bool ShouldHaveFirstArgumentSeparatelyEncoded => Argument1.Address != DestinationAddress;

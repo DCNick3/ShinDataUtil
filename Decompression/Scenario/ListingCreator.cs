@@ -8,7 +8,7 @@ using System.Text;
 using Microsoft.VisualBasic;
 using ShinDataUtil.Common.Scenario;
 using ShinDataUtil.Scenario;
-using static ShinDataUtil.Scenario.Opcode65.Operation;
+using static ShinDataUtil.Scenario.BinaryOperationArgument.Operation;
 
 namespace ShinDataUtil.Decompression.Scenario
 {
@@ -42,13 +42,13 @@ namespace ShinDataUtil.Decompression.Scenario
 
         private string FormatBinaryOperation(Instruction instruction)
         {
-            Opcode65 opcode65 = instruction.Data[0];
-            if (opcode65.Type == Argument2)
-                return $"mov {FormatNumber(NumberSpec.FromAddress(opcode65.DestinationAddress))}, {FormatNumber(opcode65.Argument2)}";
-            if (opcode65.Type == Zero)
-                return $"mov {FormatNumber(NumberSpec.FromAddress(opcode65.DestinationAddress))}, 0";
+            BinaryOperationArgument binaryOperationArgument = instruction.Data[0];
+            if (binaryOperationArgument.Type == Argument2)
+                return $"mov {FormatNumber(NumberSpec.FromAddress(binaryOperationArgument.DestinationAddress))}, {FormatNumber(binaryOperationArgument.Argument2)}";
+            if (binaryOperationArgument.Type == Zero)
+                return $"mov {FormatNumber(NumberSpec.FromAddress(binaryOperationArgument.DestinationAddress))}, 0";
 
-            return opcode65.Type switch
+            return binaryOperationArgument.Type switch
             {
                 Add => "add",
                 Subtract => "sub",
@@ -61,7 +61,7 @@ namespace ShinDataUtil.Decompression.Scenario
                 LeftShift => "lsh",
                 RightShift => "rsh",
                 _ => throw new ArgumentOutOfRangeException(),
-            } + $" {FormatNumber(NumberSpec.FromAddress(opcode65.DestinationAddress))}, " + FormatNumber(opcode65.Argument1) + ", " + FormatNumber(opcode65.Argument2);
+            } + $" {FormatNumber(NumberSpec.FromAddress(binaryOperationArgument.DestinationAddress))}, " + FormatNumber(binaryOperationArgument.Argument1) + ", " + FormatNumber(binaryOperationArgument.Argument2);
         }
 
         private string FormatConditionalJump(Instruction instruction)

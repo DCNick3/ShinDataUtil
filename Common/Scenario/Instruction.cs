@@ -69,9 +69,9 @@ namespace ShinDataUtil.Common.Scenario
                                 yield return xRef;
                             break;
                         }
-                        case OpcodeEncodingElement.Opcode65:
+                        case OpcodeEncodingElement.BinaryOperationArgument:
                         {
-                            var data = (Opcode65) Data[i];
+                            var data = (BinaryOperationArgument) Data[i];
                             foreach (var xRef in HandleNumber(data.Argument1))
                                 yield return xRef;
                             foreach (var xRef in HandleNumber(data.Argument2))

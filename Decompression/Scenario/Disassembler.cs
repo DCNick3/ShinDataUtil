@@ -243,12 +243,12 @@ namespace ShinDataUtil.Decompression.Scenario
                     }
                 case OpcodeEncodingElement.MessageId:
                     return FeedByte() | (FeedByte() << 8) | (FeedByte() << 16);
-                case OpcodeEncodingElement.Opcode65:
+                case OpcodeEncodingElement.BinaryOperationArgument:
                     tempByte = FeedByte();
                     if ((tempByte & 0x80) != 0)
-                        return new Opcode65(tempByte, FeedShort(), FeedNumber(), FeedNumber());
+                        return new BinaryOperationArgument(tempByte, FeedShort(), FeedNumber(), FeedNumber());
                     else 
-                        return new Opcode65(tempByte, FeedShort(), FeedNumber());
+                        return new BinaryOperationArgument(tempByte, FeedShort(), FeedNumber());
                 default:
                     throw new ArgumentOutOfRangeException(nameof(element), element, null);
             }
