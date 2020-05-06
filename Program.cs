@@ -532,10 +532,10 @@ namespace ShinDataUtil
             actions.AddAction("rom-replace-file", RomReplaceFile);
             actions.AddAction("rom-build", RomBuild);
 
-            if (args.Length < 1)
+            if (args.Length < 1 || args[0] == "help" || args[0] == "-h" || args[0] == "--help")
             {
                 Console.Error.WriteLine("Usage: ShinDataUtil [action] [action_args]");
-                Console.Error.WriteLine("Actions: " + string.Join(", ", actions.AllActions));
+                Console.Error.WriteLine("Actions:\n" + string.Join("\n", actions.AllActions));
                 return 1;
             }
 
