@@ -380,6 +380,10 @@ namespace ShinDataUtil.Decompression.Scenario
                     entryLabels[instr.Data[0]] = "ENTRY_TEST_MODE";
                 }
 
+                entryLabels[0x016e33] = "FUN_WIPE";
+                
+                // TODO: make a general way to declare transformation applied to the "stock" scenario
+                
                 using var writer = File.CreateText(Path.Combine(destinationDirectory, "listing.asm"));
                 
                 s.Restart();
