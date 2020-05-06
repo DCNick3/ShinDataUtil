@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -257,22 +258,9 @@ namespace ShinDataUtil
             return 0;
         }
 
-        static int RomDecodePicture(ReadOnlySpan<string> args)
+        static int DecodePicture(ReadOnlyMemory<byte> picdata, string _, string outname)
         {
-            if (args.Length != 3)
-            {
-                Console.Error.WriteLine("Usage: ShinDataUtil rom-pic-decode [romname] [picname] [outname]");
-                return 1;
-            }
-
-            var romname = args[0];
-            var picname = args[1];
-            var outname = args[2];
-            
-            using var archive = (ReadableGameArchive)new FileReadableGameArchive(romname);
-            using var picfile = archive.OpenFile(picname);
-
-            var image = ShinPictureDecoder.DecodePicture(picfile.Data.Span);
+            var image = ShinPictureDecoder.DecodePicture(picdata.Span);
             
             FastPngEncoder.WritePngToFile(outname, image);
             
@@ -282,23 +270,11 @@ namespace ShinDataUtil
             return 0;
         }
 
-        static int RomRemuxSound(ReadOnlySpan<string> args)
+        static int RemuxSound(ReadOnlyMemory<byte> nxadata, string nxaname, string outname)
         {
-            if (args.Length != 3)
-            {
-                Console.Error.WriteLine("Usage: ShinDataUtil rom-sound-remux [romname] [nxaname] [outname]");
-                return 1;
-            }
-
-            var romname = args[0];
-            var nxaname = args[1];
-            var outname = args[2];
-            
-            using var archive = (ReadableGameArchive)new FileReadableGameArchive(romname);
-            using var nxafile = archive.OpenFile(nxaname);
             using var outstream = File.OpenWrite(outname);
 
-            ShinOpusRemuxer.Remux(nxafile.Data.Span, outstream, nxaname);
+            ShinOpusRemuxer.Remux(nxadata.Span, outstream, nxaname);
 
             return 0;
         }
@@ -341,140 +317,62 @@ namespace ShinDataUtil
             return 0;
         }
 
-        static int RomFontExtract(ReadOnlySpan<string> args)
+        static int FontExtract(ReadOnlyMemory<byte> fntdata, string _, string outname)
         {
-            if (args.Length != 3)
-            {
-                Console.Error.WriteLine("Usage: ShinDataUtil rom-font-extract [romname] [fntname] [outname]");
-                return 1;
-            }
-
-            var romname = args[0];
-            var fntname = args[1];
-            var outname = args[2];
-            
-            using var archive = (ReadableGameArchive)new FileReadableGameArchive(romname);
-            using var fntfile = archive.OpenFile(fntname);
-
             if (Directory.Exists(outname))
                 Directory.Delete(outname, true);
             Directory.CreateDirectory(outname);
             
-            ShinFontExtractor.Extract(fntfile.Data.Span, outname);
+            ShinFontExtractor.Extract(fntdata.Span, outname);
             
             return 0;
         }
 
-        static int RomTxaExtract(ReadOnlySpan<string> args)
+        static int TxaExtract(ReadOnlyMemory<byte> txadata, string _, string outname)
         {
-            if (args.Length != 3)
-            {
-                Console.Error.WriteLine("Usage: ShinDataUtil rom-txa-extract [romname] [txaname] [outname]");
-                return 1;
-            }
-
-            var romname = args[0];
-            var txaname = args[1];
-            var outname = args[2];
-
-            using var archive = (ReadableGameArchive)new FileReadableGameArchive(romname);
-            using var txafile = archive.OpenFile(txaname);
-
             if (Directory.Exists(outname))
                 Directory.Delete(outname, true);
             Directory.CreateDirectory(outname);
             
-            ShinTxaExtractor.Extract(txafile.Data.Span, outname);
+            ShinTxaExtractor.Extract(txadata.Span, outname);
             
             return 0;
         }
 
-        static int RomSysseExtract(ReadOnlySpan<string> args)
+        static int SysseExtract(ReadOnlyMemory<byte> syssedata, string _, string outname)
         {
-            if (args.Length != 3)
-            {
-                Console.Error.WriteLine("Usage: ShinDataUtil rom-txa-extract [romname] [syssename] [outname]");
-                return 1;
-            }
-
-            var romname = args[0];
-            var syssename = args[1];
-            var outname = args[2];
-
-            using var archive = (ReadableGameArchive)new FileReadableGameArchive(romname);
-            using var syssefile = archive.OpenFile(syssename);
-
             if (Directory.Exists(outname))
                 Directory.Delete(outname, true);
             Directory.CreateDirectory(outname);
             
-            ShinSysseExtractor.Extract(syssefile.Data.Span, outname);
+            ShinSysseExtractor.Extract(syssedata.Span, outname);
             
             return 0;
         }
 
-        static int RomBustupExtract(ReadOnlySpan<string> args)
+        static int BustupExtract(ReadOnlyMemory<byte> bupdata, string _, string outname)
         {
-            if (args.Length != 3)
-            {
-                Console.Error.WriteLine("Usage: ShinDataUtil rom-bustup-extract [romname] [bupname] [outname]");
-                return 1;
-            }
-
-            var romname = args[0];
-            var bupname = args[1];
-            var outname = args[2];
-            
-            using var archive = (ReadableGameArchive)new FileReadableGameArchive(romname);
-            using var bupfile = archive.OpenFile(bupname);
-
             if (Directory.Exists(outname))
                 Directory.Delete(outname, true);
             Directory.CreateDirectory(outname);
             
-            ShinBustupExtractor.Extract(bupfile.Data.Span, outname);
+            ShinBustupExtractor.Extract(bupdata.Span, outname);
 
             return 0;
         }
 
-        private static int RomMaskExtract(ReadOnlySpan<string> args)
+        private static int MaskExtract(ReadOnlyMemory<byte> mskdata, string _, string outname)
         {
-            if (args.Length != 3)
-            {
-                Console.Error.WriteLine("Usage: ShinDataUtil rom-mask-extract [romname] [mskname] [outname]");
-                return 1;
-            }
-
-            var romname = args[0];
-            var mskname = args[1];
-            var outname = args[2];
-            
-            using var archive = (ReadableGameArchive)new FileReadableGameArchive(romname);
-            using var mskfile = archive.OpenFile(mskname);
-
-            var image = ShinMaskDecompress.Decompress(mskfile.Data.Span);
+            var image = ShinMaskDecompress.Decompress(mskdata.Span);
             
             FastPngEncoder.WritePngToFile(outname, image);
             
             return 0;
         }
 
-        private static int RomScenarioDecompile(ReadOnlySpan<string> args)
+        private static int ScenarioDecompile(ReadOnlyMemory<byte> snrdata, string _, string outname)
         {
-            if (args.Length != 3)
-            {
-                Console.Error.WriteLine("Usage: ShinDataUtil rom-scenario-decompile [romname] [snrname] [outname]");
-                return 1;
-            }
-
-            var romname = args[0];
-            var snrname = args[1];
-            var outname = args[2];
-            
-            using var archive = (ReadableGameArchive)new FileReadableGameArchive(romname);
-            using var snrfile = archive.OpenFile(snrname);
-
-            ShinScenarioDecompiler.Decompile(snrfile.Data, outname);
+            ShinScenarioDecompiler.Decompile(snrdata, outname);
             
             return 0;
         }
@@ -543,51 +441,105 @@ namespace ShinDataUtil
             return 0;
         }
 
+        private class ActionList
+        {
+            public delegate int Action(ReadOnlySpan<string> args);
+            public delegate int SingleFileProcessingAction(ReadOnlyMemory<byte> input, string inputname, string output);
+
+            private Dictionary<string, Action> actions;
+
+            public ActionList()
+            {
+                actions = new Dictionary<string, Action>();
+            }
+
+            public void AddAction(string name, Action action)
+            {
+                actions.Add(name, action);
+            }
+
+            public IEnumerable<string> AllActions => actions.Keys;
+
+            /// <summary>
+            /// Adds a pair of actions associated with the given processing function
+            /// One that processes from a rom file (prefixed with rom-), and one that processes from an extracted file
+            /// </summary>
+            public void AddSingleFileProcessingAction(string name, string inputName, SingleFileProcessingAction action)
+            {
+                actions.Add(name, (args) =>
+                {
+                    if (args.Length != 2)
+                    {
+                        Console.Error.WriteLine($"Usage: ShinDataUtil {name} [{inputName}file] [outname]");
+                        return 1;
+                    }
+
+                    var inname = args[0];
+                    var outname = args[1];
+
+                    var indata = File.ReadAllBytes(inname);
+
+                    return action(indata, inname, outname);
+                });
+
+                actions.Add($"rom-{name}", (args) =>
+                {
+                    if (args.Length != 3)
+                    {
+                        Console.Error.WriteLine($"Usage: ShinDataUtil rom-{name} [romname] [{inputName}name] [outname]");
+                        return 1;
+                    }
+
+                    var romname = args[0];
+                    var inname = args[1];
+                    var outname = args[2];
+
+                    using var archive = (ReadableGameArchive)new FileReadableGameArchive(romname);
+                    using var infile = archive.OpenFile(inname);
+
+                    return action(infile.Data, inname, outname);
+                });
+            }
+
+            public int Execute(string actionname, ReadOnlySpan<string> args)
+            {
+                if (!actions.TryGetValue(actionname, out Action? action))
+                {
+                    Console.Error.WriteLine("Unknown action");
+                    return -1;
+                }
+                return action(args);
+            }
+        }
+
         private static int MainWrap(string[] args)
         {
+            var actions = new ActionList();
+
+            actions.AddAction("rom-list", ListFiles);
+            actions.AddAction("rom-extract-all", (args_) => ExtractAllFiles(args_, false, false));
+            actions.AddAction("rom-extract-all-with-decode", (args_) => ExtractAllFiles(args_, true, false));
+            actions.AddSingleFileProcessingAction("pic-decode", "pic", DecodePicture);
+            actions.AddSingleFileProcessingAction("sound-remux", "nxa", RemuxSound);
+            actions.AddAction("lz77-test", Lz77Test);
+            actions.AddSingleFileProcessingAction("font-extract", "fnt", FontExtract);
+            actions.AddSingleFileProcessingAction("txa-extract", "txa", TxaExtract);
+            actions.AddSingleFileProcessingAction("sysse-extract", "sysse", SysseExtract);
+            actions.AddSingleFileProcessingAction("bustup-extract", "bup", BustupExtract);
+            actions.AddSingleFileProcessingAction("mask-extract", "msk", MaskExtract);
+            actions.AddSingleFileProcessingAction("scenario-decompile", "snr", ScenarioDecompile);
+            actions.AddAction("scenario-build", ScenarioBuild);
+            actions.AddAction("rom-replace-file", RomReplaceFile);
+            actions.AddAction("rom-build", RomBuild);
+
             if (args.Length < 1)
             {
                 Console.Error.WriteLine("Usage: ShinDataUtil [action] [action_args]");
+                Console.Error.WriteLine("Actions: " + string.Join(", ", actions.AllActions));
                 return 1;
             }
 
-            var action = args[0];
-            switch (action)
-            {
-                case "rom-list":
-                    return ListFiles(args[1..]);
-                case "rom-extract-all":
-                    return ExtractAllFiles(args[1..], false, false);
-                case "rom-extract-all-with-decode":
-                    return ExtractAllFiles(args[1..], true, false);
-                case "rom-pic-decode":
-                    return RomDecodePicture(args[1..]);
-                case "rom-sound-remux":
-                    return RomRemuxSound(args[1..]);
-                case "lz77-test":
-                    return Lz77Test(args[1..]);
-                case "rom-font-extract":
-                    return RomFontExtract(args[1..]);
-                case "rom-txa-extract":
-                    return RomTxaExtract(args[1..]);
-                case "rom-sysse-extract":
-                    return RomSysseExtract(args[1..]);
-                case "rom-bustup-extract":
-                    return RomBustupExtract(args[1..]);
-                case "rom-mask-extract":
-                    return RomMaskExtract(args[1..]);
-                case "rom-scenario-decompile":
-                    return RomScenarioDecompile(args[1..]);
-                case "scenario-build":
-                    return ScenarioBuild(args[1..]);
-                case "rom-replace-file":
-                    return RomReplaceFile(args[1..]);
-                case "rom-build":
-                    return RomBuild(args[1..]);
-                default:
-                    Console.Error.WriteLine("Unknown action");
-                    return 1;
-            }
+            return actions.Execute(args[0], args[1..]);
         }
 
         static int Main(string[] args)
