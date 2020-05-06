@@ -501,7 +501,7 @@ namespace ShinDataUtil
                 });
             }
 
-            public int execute(string actionname, ReadOnlySpan<string> args)
+            public int Execute(string actionname, ReadOnlySpan<string> args)
             {
                 if (!actions.TryGetValue(actionname, out Action? action))
                 {
@@ -539,7 +539,7 @@ namespace ShinDataUtil
                 return 1;
             }
 
-            return actions.execute(args[0], args[1..]);
+            return actions.Execute(args[0], args[1..]);
         }
 
         static int Main(string[] args)
