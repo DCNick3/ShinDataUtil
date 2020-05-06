@@ -94,13 +94,13 @@ namespace ShinDataUtil.Compression.Scenario
                     return 1 + ((ImmutableArray<NumberSpec>) value).Select(_ => _.Value == 0 ? 0 : NumberLength(_))
                         .Sum();
                 case OpcodeEncodingElement.PostfixNotationExpression: return RpneLength((PostfixExpression)value);
-                case OpcodeEncodingElement.BinaryOperationArgument: return Opcode65Length((BinaryOperationArgument)value);
+                case OpcodeEncodingElement.BinaryOperationArgument: return BinaryOperationArgumentLength((BinaryOperationArgument)value);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(encoding), encoding, null);
             }
         }
 
-        private static int Opcode65Length(BinaryOperationArgument value)
+        private static int BinaryOperationArgumentLength(BinaryOperationArgument value)
         {
             if (value.ShouldHaveFirstArgumentSeparatelyEncoded)
                 return 1 + 2 + NumberLength(value.Argument1) + NumberLength(value.Argument2);
