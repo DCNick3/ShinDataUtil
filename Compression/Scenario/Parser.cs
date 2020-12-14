@@ -570,7 +570,7 @@ namespace ShinDataUtil.Compression.Scenario
                 if (_labelIdToInstructionNumber.TryGetValue(p.Value, out var iNumber))
                     res.Add(p.Key, iNumber);
                 else
-                    throw new ParseExceptionInternal($"Label {p.Value} referenced, but not defined");
+                    throw new ParseExceptionInternal($"Label {p.Key} referenced, but not defined");
             }
 
             return res.ToImmutableDictionary();

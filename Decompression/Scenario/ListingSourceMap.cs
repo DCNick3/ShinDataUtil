@@ -4,12 +4,12 @@ using System.Linq;
 
 namespace ShinDataUtil.Decompression.Scenario
 {
-    public sealed class ListingAddressMap
+    public sealed class ListingSourceMap
     {
         private ImmutableArray<(int, int)> _addressToLineMapping;
         private ImmutableArray<int> _lineToAddressMapping;
         
-        private ListingAddressMap(ImmutableArray<(int, int)> addressToLineMapping, ImmutableArray<int> lineToAddressMapping)
+        private ListingSourceMap(ImmutableArray<(int, int)> addressToLineMapping, ImmutableArray<int> lineToAddressMapping)
         {
             _addressToLineMapping = addressToLineMapping;
             _lineToAddressMapping = lineToAddressMapping;
@@ -49,7 +49,7 @@ namespace ShinDataUtil.Decompression.Scenario
                 _line++;
             }
 
-            public ListingAddressMap Build() => new ListingAddressMap(
+            public ListingSourceMap Build() => new ListingSourceMap(
                 _addressToLineMapping.ToImmutableArray(),
                 _lineToAddressMapping.ToImmutableArray());
         }

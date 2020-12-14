@@ -58,6 +58,15 @@ namespace ShinDataUtil.Decompression.Scenario
 
         public Instruction this[int address] => GetInstructionContaining(address).Item2;
 
+        public int GetInstructionSize(int address)
+        {
+            var (addr, instr) = GetInstructionContaining(address);
+            var next = TryGetNextInstruction(addr);
+            if (next == null)
+                return EndAddress - addr;
+            return next.Value.Item1 - addr;
+        }
+        
         public Instruction GetInstructionAt(int address)
         {
             var r = TryGetInstructionAt(address);

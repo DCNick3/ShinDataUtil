@@ -15,13 +15,13 @@ namespace ShinDataUtil.Decompression.Scenario
     public class ListingCreator
     {
         private static readonly Common.ShiftJisEncoding ShiftJis = new Common.ShiftJisEncoding();
-        private readonly Dictionary<int, string> _labels;
+        private readonly Dictionary<int, List<string>> _labels;
 
         private ListingCreator(int beginAddress)
         {
-            _labels = new Dictionary<int, string>()
+            _labels = new Dictionary<int, List<string>>
             {
-                { beginAddress, "lab_begin" }
+                { beginAddress, new List<string> {"lab_begin"} }
             };
         }
         
@@ -36,7 +36,7 @@ namespace ShinDataUtil.Decompression.Scenario
         private string FormatJumpOffset(int offset)
         {
             if (_labels.TryGetValue(offset, out var name))
-                return name;
+                return name.First();
             return $"0x{offset:x6}j";
         }
 
@@ -181,18 +181,18 @@ namespace ShinDataUtil.Decompression.Scenario
 
             return sb.ToString();
         }
-        
-        public static ListingAddressMap CreateListing(DisassemblyView view, 
-            IReadOnlyDictionary<int, string> userLabels, TextWriter textWriter)
+
+        public static ListingSourceMap CreateListing(DisassemblyView view,
+            LabelCollection userLabels, DisassemblyMap disassemblyMap, TextWriter destination)
         {
             var creator = new ListingCreator(view.BeginAddress);
-            foreach (var (addr, name) in userLabels) 
-                creator._labels[addr] = name;
+            foreach (var (addr, names) in userLabels.AddressToLabels) 
+                creator._labels[addr] = names.ToList();
 
             foreach (var (_, instr) in view.EnumerateInstructions())
             foreach (var jumpOffset in instr.CodeXRefOut)
             {
-                if (userLabels.ContainsKey(jumpOffset)) 
+                if (userLabels.ContainsAddress(jumpOffset)) 
                     continue;
                 var prefix = instr.Opcode switch
                 {
@@ -200,29 +200,44 @@ namespace ShinDataUtil.Decompression.Scenario
                     _ => "LAB_",
                 };
                 if (creator._labels.TryGetValue(jumpOffset, out var lab))
-                    if (lab.StartsWith("FUN_"))
+                    if (lab.Any(_ => _.StartsWith("FUN_")))
                         continue;
-                creator._labels[jumpOffset] = $"{prefix}{jumpOffset:x6}";
+                creator._labels[jumpOffset] = new List<string>{ $"{prefix}{jumpOffset:x6}" };
             }
 
-            var mapBuilder = new ListingAddressMap.Builder();
+            var mapBuilder = new ListingSourceMap.Builder();
             foreach (var (addr, instr) in view.EnumerateInstructions())
             {
-                if (creator._labels.TryGetValue(addr, out var name))
+                void EmitLine(string line)
                 {
-                    mapBuilder.EmitLine(addr);
-                    textWriter.WriteLine($"{name}:");
+                    mapBuilder!.EmitLine(addr);
+                    destination.WriteLine(line);
                 }
 
-                mapBuilder.EmitLine(addr);
-                textWriter.WriteLine($"        {creator.FormatInstruction(instr)}");
+                var region = disassemblyMap.GetSectionWithRegionEndingAt(addr);
+                if (region != null)
+                    EmitLine($"##endregion \"{region.Name.Replace("\"", "\\\"")}\"");
+                
+                region = disassemblyMap.GetSectionWithRegionStartingAt(addr);
+                if (region != null) 
+                    EmitLine($"##startregion \"{region.Name.Replace("\"", "\\\"")}\"");
+
+                if (creator._labels.TryGetValue(addr, out var names))
+                    foreach (var name in names)
+                        EmitLine($"{name}:");
+
+                EmitLine($"        {creator.FormatInstruction(instr)}");
             }
 
             return mapBuilder.Build();
         }
+        
+        public static ListingSourceMap CreateListing(DisassemblyView view, 
+            LabelCollection userLabels, TextWriter destination) =>
+                CreateListing(view, userLabels, DisassemblyMap.Empty, destination);
 
         public static string CreateListing(DisassemblyView view, 
-            IReadOnlyDictionary<int, string> userLabels)
+            LabelCollection userLabels)
         {
             var sb = new StringWriter();
             CreateListing(view, userLabels, sb);

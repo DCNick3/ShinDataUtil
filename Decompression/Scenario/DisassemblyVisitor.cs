@@ -21,6 +21,23 @@ namespace ShinDataUtil.Decompression.Scenario
 
         protected virtual bool VisitInstruction(int address, Instruction i) => true;
 
+        protected virtual IEnumerable<int> GetOutEdges(int address, Instruction instr, bool shouldContinue)
+        {
+            if (!shouldContinue)
+                yield break;
+        
+            if (instr.IsJump)
+            {
+                foreach (var addr in instr.CodeXRefOut)
+                    if (addr != address)
+                        yield return addr;
+                if (!instr.CanFallThrough)
+                    shouldContinue = false;
+            }
+            if (shouldContinue)
+                yield return address;
+        }
+        
         private void VisitBlock(int address)
         {
             if (_visitedInstructions.Contains(address))
@@ -35,20 +52,22 @@ namespace ShinDataUtil.Decompression.Scenario
                 var shouldContinue = VisitInstruction(address, instr);
                 _visitedInstructions.Add(address);
                 
-                if (!shouldContinue)
-                    break;
-
-                if (instr.IsJump)
+                var shouldFallThrough = false;
+                foreach (var outAddr in GetOutEdges(address, instr, shouldContinue))
                 {
-                    foreach (var addr in instr.CodeXRefOut)
-                        VisitBlock(addr);
-                    if (!instr.CanFallThrough)
-                        break;
+                    if (outAddr == address) // A little crutch...
+                        shouldFallThrough = true;
+                    else
+                        VisitBlock(outAddr);
                 }
-
+                
+                if (!shouldFallThrough)
+                    break;
+                
                 var next = DisassemblyView.TryGetNextInstruction(address);
                 if (next == null)
                     break;
+                
                 (address, instr) = next.Value;
             }
 
