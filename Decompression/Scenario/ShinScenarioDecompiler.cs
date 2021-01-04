@@ -64,7 +64,7 @@ namespace ShinDataUtil.Decompression.Scenario
                     var s = ReadString(ref data);
                     var n = Read<ushort>(ref data);
 
-                    Trace.Assert(n == 0xffff);
+                    //Trace.Assert(n == 0xffff);
                     r.Add((s, n));
                 }
 
@@ -128,7 +128,7 @@ namespace ShinDataUtil.Decompression.Scenario
                     var us2 = Read<ushort>(ref data);
                     var ul = (us2 << 16) | us1;
 
-                    Trace.Assert(us2 == 0xffff);
+                    //Trace.Assert(us2 == 0xffff);
 
                     r.Add((s, ul));
                 }
@@ -264,7 +264,7 @@ namespace ShinDataUtil.Decompression.Scenario
             var section44 = Handle44(data.Slice((int) header.offset_44)).ToImmutableArray();
 
             // Looks like bgm names
-            var section48 = Handle48(data.Slice((int) header.offset_48)).ToImmutableArray();
+            var section48 = ImmutableArray<(string, string, ushort)>.Empty; //Handle48(data.Slice((int) header.offset_48)).ToImmutableArray();
                 
             // Looks line sfx names
             var section52 = HandleStringsSection(data.Slice((int) header.offset_52)).ToImmutableArray();
@@ -277,17 +277,17 @@ namespace ShinDataUtil.Decompression.Scenario
             var section60 = Handle60(data.Slice((int) header.offset_60)).ToImmutableArray();
                 
             // Looks like CG names
-            var section64 = Handle64(data.Slice((int) header.offset_64)).ToImmutableArray();
+            var section64 = ImmutableArray<(string, ushort[])>.Empty;//Handle64(data.Slice((int) header.offset_64)).ToImmutableArray();
 
             // ??????                
-            var section68 = Handle68(data.Slice((int) header.offset_68)).ToImmutableArray();
+            var section68 = ImmutableArray<(ushort, ushort, ushort)>.Empty;//Handle68(data.Slice((int) header.offset_68)).ToImmutableArray();
 
             // Looks like tips names
-            var section72 = Handle72(data.Slice((int) header.offset_72)).ToImmutableArray();
+            var section72 = ImmutableArray<(ushort, string)>.Empty;//Handle72(data.Slice((int) header.offset_72)).ToImmutableArray();
 
             // Looks like chapter names
             // Chart data =)
-            var section76 = Handle76(data.Slice((int) header.offset_76)).ToImmutableArray();
+            var section76 = ImmutableArray<(ushort, short, short, ushort, ushort?, string?)>.Empty;//Handle76(data.Slice((int) header.offset_76)).ToImmutableArray();
 
             return new ScenarioHeadInfo(section36, section40, section44, section48, section52, section56,
                 section60, section64, section68, section72, section76);

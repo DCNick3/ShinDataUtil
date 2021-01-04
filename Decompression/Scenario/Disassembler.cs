@@ -220,7 +220,8 @@ namespace ShinDataUtil.Decompression.Scenario
                 case OpcodeEncodingElement.NumberArray:
                     return Enumerable.Range(0, FeedByte()).Select(_ => FeedNumber()).ToImmutableArray();
                 case OpcodeEncodingElement.JumpOffsetArray:
-                    return Enumerable.Range(0, FeedByte()).Select(_ => FeedOffset()).ToImmutableArray();
+                    var sz = FeedShort();
+                    return Enumerable.Range(0, sz).Select(_ => FeedOffset()).ToImmutableArray();
                 case OpcodeEncodingElement.String: return FeedString();
                 case OpcodeEncodingElement.LongString: return FeedLongString();
                 case OpcodeEncodingElement.StringArray: return FeedStringArray();

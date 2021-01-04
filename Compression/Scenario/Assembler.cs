@@ -201,6 +201,13 @@ namespace ShinDataUtil.Compression.Scenario
                 encodeOne(bw, el);
         }
 
+        private static void EncodeLongerArray<T>(BinaryWriter bw, ImmutableArray<T> data, Action<BinaryWriter, T> encodeOne)
+        {
+            bw.Write(checked((ushort)data.Length));
+            foreach (var el in data) 
+                encodeOne(bw, el);
+        }
+
         private static void EncodeStringCore(BinaryWriter bw, Opcode opcode, string str, Action<BinaryWriter, int> lengthEnc)
         {
             if (OpcodeDefinitions.DoesNeedStringsFixup(opcode))
@@ -314,7 +321,7 @@ namespace ShinDataUtil.Compression.Scenario
                 case OpcodeEncodingElement.NumberArray:
                     EncodeArray(bw, (ImmutableArray<NumberSpec>) value, EncodeNumber); break;
                 case OpcodeEncodingElement.JumpOffsetArray:
-                    EncodeArray(bw, (ImmutableArray<int>) value, (bw1, el) => bw1.Write(el)); break;
+                    EncodeLongerArray(bw, (ImmutableArray<int>) value, (bw1, el) => bw1.Write(el)); break;
                 case OpcodeEncodingElement.String: EncodeString(bw, opcode, (string) value); break;
                 case OpcodeEncodingElement.LongString: EncodeLongString(bw, opcode, (string) value); break;
                 case OpcodeEncodingElement.StringArray: EncodeStringArray(bw, opcode, (ImmutableArray<string>)value); break;
