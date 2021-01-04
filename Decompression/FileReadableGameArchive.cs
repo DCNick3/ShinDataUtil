@@ -28,13 +28,13 @@ namespace ShinDataUtil.Decompression
             Trace.Assert(BitConverter.IsLittleEndian);
         }
         
-        public FileReadableGameArchive(string path) : this(MemoryMappedFile.CreateFromFile(path, FileMode.Open),
-            File.OpenRead(path))
+        public FileReadableGameArchive(string path) : this(File.OpenRead(path))
         { }
 
-        public unsafe FileReadableGameArchive(MemoryMappedFile memoryMappedFile, FileStream fileStream)
+        public unsafe FileReadableGameArchive(FileStream fileStream)
         {
-            _memoryMappedFile = memoryMappedFile;
+            _memoryMappedFile = MemoryMappedFile.CreateFromFile(fileStream, null, 0, MemoryMappedFileAccess.Read,
+                HandleInheritability.None, true);
             _fileStream = fileStream;
 
             var headerSize = Marshal.SizeOf<RomHeader>();
