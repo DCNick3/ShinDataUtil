@@ -174,7 +174,7 @@ namespace ShinDataUtil.Compression
                     }
                 }
 
-                entry.Size = nameOffset - currentOffset;
+                entry.Size = nameOffset;
                 currentOffset += nameOffset;
             }
 
@@ -213,7 +213,7 @@ namespace ShinDataUtil.Compression
 
                     rawEntry.DataSize = fentry.Size;
                     if (fentry is DirectoryEntry)
-                        rawEntry.RawDataOffset = fentry.Offset / directoryOffsetMultiplier;
+                        rawEntry.RawDataOffset = (fentry.Offset - sizeof(RomHeader)) / directoryOffsetMultiplier;
                     else
                         rawEntry.RawDataOffset = fentry.Offset / header.offsetMultiplier;
 
