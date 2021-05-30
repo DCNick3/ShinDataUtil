@@ -172,6 +172,8 @@ namespace ShinDataUtil.Compression.Scenario
             var sb = new StringBuilder();
             while (true)
             {
+                if (line.IsEmpty)
+                    throw new ParseExceptionInternal("Reached end-of-line when scanning for string literal");
                 var c = line[0];
                 line = line[1..];
                 switch (c)
@@ -617,7 +619,6 @@ namespace ShinDataUtil.Compression.Scenario
             }
             catch (ParseExceptionInternal e)
             {
-                Console.WriteLine(e);
                 throw new ParseException($"Parse exception occured at line {_lineNumber}", e);
             }
         }
