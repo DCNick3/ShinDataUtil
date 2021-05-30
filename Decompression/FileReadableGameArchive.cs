@@ -39,7 +39,7 @@ namespace ShinDataUtil.Decompression
 
             var headerSize = Marshal.SizeOf<RomHeader>();
 
-            _fileAccessor = _memoryMappedFile.CreateViewAccessor(0, 0);
+            _fileAccessor = _memoryMappedFile.CreateViewAccessor(0, 0, MemoryMappedFileAccess.Read);
             // TODO: replace memory mapping with plain reads (it's more effective anyways)
             var headerSpan = new MemoryMappedViewMemoryManager(_fileAccessor, 0, headerSize).GetSpan();
             var header = MemoryMarshal.Read<RomHeader>(headerSpan);
