@@ -70,7 +70,8 @@ namespace ShinDataUtil.Compression
 
             void AddEntry(IFileProvider source, string targetName)
             {
-                Trace.Assert(targetName[0] == '/');
+                if (targetName[0] != '/')
+                    throw new ArgumentException("Entry name must start with a '/'.", nameof(targetName));
                 var parts = targetName.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
                 var currentEntry = root;
                 foreach (var part in parts[..^1])
