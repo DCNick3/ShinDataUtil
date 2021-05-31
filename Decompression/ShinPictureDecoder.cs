@@ -14,7 +14,7 @@ namespace ShinDataUtil.Decompression
             Trace.Assert(BitConverter.IsLittleEndian);
         }
         
-        public static Image<Rgba32> DecodePicture(ReadOnlySpan<byte> picture)
+        public static (Image<Rgba32>, (int effectiveWidth, int effectiveHeight)) DecodePicture(ReadOnlySpan<byte> picture)
         {
             var header = MemoryMarshal.Read<PictureHeader>(picture);
             var entriesData = MemoryMarshal.Cast<byte, PictureHeaderFragmentEntry>(
@@ -26,7 +26,7 @@ namespace ShinDataUtil.Decompression
             for (var i = 0; i < entries.Length; i++)
                 entries[i] = entriesData[i];
 
-            int totalWidth = 0, totalHeight = 0;
+            int totalWidth = header.effectiveHeight, totalHeight = header.effectiveWidth;
             foreach (var entry in entries)
             {
                 var size = ShinTextureDecompress.GetImageFragmentSize(entry.GetData(picture));
@@ -38,7 +38,7 @@ namespace ShinDataUtil.Decompression
             foreach (var entry in entries) 
                 ShinTextureDecompress.DecodeImageFragment(image, entry.x, entry.y, entry.GetData(picture));
 
-            return image;
+            return (image, (header.effectiveWidth, header.effectiveHeight));
         }
 
         private struct PictureHeader
@@ -48,7 +48,8 @@ namespace ShinDataUtil.Decompression
             public uint field4;
             public uint field8;
             public uint field12;
-            public uint field16;
+            public ushort effectiveWidth;
+            public ushort effectiveHeight;
             public uint field20;
             public uint entryCount;
             public uint pictureId;

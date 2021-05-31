@@ -107,10 +107,10 @@ namespace ShinDataUtil
                         case ".pic":
                         {
                             NonBlockingConsole.WriteLine("IMG  {0}", file.Path);
-                            var image = ShinPictureDecoder.DecodePicture(s.Data.Span);
+                            var (image, effectiveSize) = ShinPictureDecoder.DecodePicture(s.Data.Span);
                             if (!dryRun)
                             {
-                                FastPngEncoder.WritePngToFile(basePath + ".png", image);
+                                FastPngEncoder.WritePngToFile(basePath + ".png", image, effectiveSize);
                                 Interlocked.Add(ref writeBytes, new FileInfo(basePath + ".png").Length);
                             }
 
@@ -260,9 +260,9 @@ namespace ShinDataUtil
 
         static int DecodePicture(ReadOnlyMemory<byte> picdata, string _, string outname)
         {
-            var image = ShinPictureDecoder.DecodePicture(picdata.Span);
+            var (image, effectiveSize) = ShinPictureDecoder.DecodePicture(picdata.Span);
             
-            FastPngEncoder.WritePngToFile(outname, image);
+            FastPngEncoder.WritePngToFile(outname, image, effectiveSize);
             
             //using var fd = File.OpenWrite(outname);
             //image.SaveAsPng(fd);
