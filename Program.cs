@@ -441,6 +441,28 @@ namespace ShinDataUtil
             return 0;
         }
 
+        private static int RomBuildFromDir(ReadOnlySpan<string> args)
+        {
+            if (args.Length != 2)
+            {
+                Console.Error.WriteLine("Usage: ShinDataUtil rom-build-from-dir [outrom] [indir]");
+                return 1;
+            }
+
+            var outrom = args[0];
+            var indir = args[1];
+
+            var infiles = Directory.EnumerateFiles(indir, "*", SearchOption.AllDirectories);
+
+            var files = infiles.Select(_ => (_, "/" + Path.GetRelativePath(indir, _))).ToArray();
+
+            using var outromfile = File.Create(outrom);
+            
+            ShinRomOperations.BuildRom(outromfile, files);
+            
+            return 0;
+        }
+
         private class ActionList
         {
             public delegate int Action(ReadOnlySpan<string> args);
@@ -517,8 +539,8 @@ namespace ShinDataUtil
             var actions = new ActionList();
 
             actions.AddAction("rom-list", ListFiles);
-            actions.AddAction("rom-extract-all", (args_) => ExtractAllFiles(args_, false, false));
-            actions.AddAction("rom-extract-all-with-decode", (args_) => ExtractAllFiles(args_, true, false));
+            actions.AddAction("rom-extract-all", _ => ExtractAllFiles(_, false, false));
+            actions.AddAction("rom-extract-all-with-decode", _ => ExtractAllFiles(_, true, false));
             actions.AddSingleFileProcessingAction("pic-decode", "pic", DecodePicture);
             actions.AddSingleFileProcessingAction("sound-remux", "nxa", RemuxSound);
             actions.AddAction("lz77-test", Lz77Test);
@@ -531,6 +553,7 @@ namespace ShinDataUtil
             actions.AddAction("scenario-build", ScenarioBuild);
             actions.AddAction("rom-replace-file", RomReplaceFile);
             actions.AddAction("rom-build", RomBuild);
+            actions.AddAction("rom-build-from-dir", RomBuildFromDir);
 
             if (args.Length < 1 || args[0] == "help" || args[0] == "-h" || args[0] == "--help")
             {

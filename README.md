@@ -38,3 +38,5 @@ Subcommands:
 - `rom-replace-file origrom srcfile targetname outrom` - quickly replace a file in ROM by another one. Does not remove previous file contents, so avoid using this repeatedly
 
 - `rom-build outrom [infile targetname]...` - build a ROM from scratch from specified pairs of source files and their target names
+
+- `rom-build-from-dir [outrom] [indir]` - build a ROM from scratch from specified root directory. All files in the directory will be put to the rom with the same name
