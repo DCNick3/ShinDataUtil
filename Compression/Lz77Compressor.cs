@@ -25,7 +25,7 @@ namespace ShinDataUtil.Compression
             _maximumLength = (1 << 16 - offsetBits) + 2;
         }
         
-        public unsafe (byte[], int actualLength) Compress(ReadOnlySpan<byte> data)
+        public unsafe (byte[], int actualength) Compress(ReadOnlySpan<byte> data)
         {
             /* corner cases */
             if (data.Length == 0)

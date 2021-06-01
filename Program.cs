@@ -317,6 +317,24 @@ namespace ShinDataUtil
             return 0;
         }
 
+        static int TxaEncode(ReadOnlySpan<string> args)
+        {
+            if (args.Length < 1)
+            {
+                Console.Error.WriteLine("Usage: ShinDataUtil txa-encode [srcdir] [outfile]");
+                return 1;
+            }
+
+            var srcdir = args[0];
+            var outfile = args[1];
+
+            using var outtxa = File.Create(outfile);
+            
+            ShinTxaEncoder.BuildTxa(outtxa, srcdir);
+
+            return 0;
+        }
+
         static int FontExtract(ReadOnlyMemory<byte> fntdata, string _, string outname)
         {
             if (Directory.Exists(outname))
@@ -544,6 +562,7 @@ namespace ShinDataUtil
             actions.AddSingleFileProcessingAction("pic-decode", "pic", DecodePicture);
             actions.AddSingleFileProcessingAction("sound-remux", "nxa", RemuxSound);
             actions.AddAction("lz77-test", Lz77Test);
+            actions.AddAction("txa-encode", TxaEncode);
             actions.AddSingleFileProcessingAction("font-extract", "fnt", FontExtract);
             actions.AddSingleFileProcessingAction("txa-extract", "txa", TxaExtract);
             actions.AddSingleFileProcessingAction("sysse-extract", "sysse", SysseExtract);

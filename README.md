@@ -40,3 +40,5 @@ Subcommands:
 - `rom-build outrom [infile targetname]...` - build a ROM from scratch from specified pairs of source files and their target names
 
 - `rom-build-from-dir [outrom] [indir]` - build a ROM from scratch from specified root directory. All files in the directory will be put to the rom with the same name
+
+- `txa-encode [srcdir] [outtxa]` - build a TXA from the specified directory (needs an `index.txt` file to function)
