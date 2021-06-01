@@ -61,15 +61,15 @@ namespace ShinDataUtil.Compression
                 indexEntry.DecompressedSize = neededSize;
                 indexEntry.CompressedSize = 0;
 
-                /*var compressor = new Lz77Compressor(12);
-                var (compressed, actualCompressedSize) = compressor.Compress(buffer);
+                var compressor = new Lz77Compressor(12);
+                var (compressed, actualCompressedSize) = compressor.Compress(buffer.AsSpan()[..neededSize]);
 
                 if (actualCompressedSize < neededSize)
                 {
                     indexEntry.CompressedSize = actualCompressedSize;
                     outtxa.Write(compressed, 0, actualCompressedSize);
                 }
-                else*/
+                else
                     outtxa.Write(buffer, 0, neededSize);
             }
             finally

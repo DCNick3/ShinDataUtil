@@ -16,15 +16,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="UnitTests\**" />
+    <Compile Remove="Tests\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Remove="UnitTests\**" />
+    <EmbeddedResource Remove="Tests\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="UnitTests\**" />
+    <None Remove="Tests\**" />
   </ItemGroup>
 
 </Project>
