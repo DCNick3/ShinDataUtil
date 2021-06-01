@@ -12,6 +12,7 @@ using ShinDataUtil.Compression.Scenario;
 using ShinDataUtil.Decompression;
 using ShinDataUtil.Decompression.Scenario;
 using ShinDataUtil.Scenario;
+using ShinDataUtil.Util;
 
 namespace ShinDataUtil
 {
@@ -401,6 +402,38 @@ namespace ShinDataUtil
             return 0;
         }
 
+        private static int ScenarioLayout(ReadOnlySpan<string> args)
+        {
+            if (args.Length != 1)
+            {
+                Console.Error.WriteLine("Usage: ShinDataUtil scenario-layout [asmdir]");
+                return 1;
+            }
+
+            var asmdir = args[0];
+            
+            using var codeFile = File.OpenText(asmdir + "/listing.asm");
+
+            var asmParser = new Parser(codeFile);
+            var (instructions, lab) = asmParser.ReadAll();
+
+            var visitor = MessageTextLayouter.Default(0, 0);
+            var parser = new MessageTextParser();
+            
+            foreach (var instr in instructions)
+            {
+                if (instr.Opcode == Opcode.MSGSET)
+                {
+                    string message = instr.Data[3];
+                    
+                    parser.ParseTo(message, visitor);
+                }
+            }
+            NonBlockingConsole.WriteLine("");
+            
+            return 0; 
+        }
+
         private static int RomReplaceFile(ReadOnlySpan<string> args)
         {
             if (args.Length != 4)
@@ -551,6 +584,7 @@ namespace ShinDataUtil
             actions.AddSingleFileProcessingAction("mask-extract", "msk", MaskExtract);
             actions.AddSingleFileProcessingAction("scenario-decompile", "snr", ScenarioDecompile);
             actions.AddAction("scenario-build", ScenarioBuild);
+            actions.AddAction("scenario-layout", ScenarioLayout);
             actions.AddAction("rom-replace-file", RomReplaceFile);
             actions.AddAction("rom-build", RomBuild);
             actions.AddAction("rom-build-from-dir", RomBuildFromDir);

@@ -110,7 +110,7 @@ namespace ShinDataUtil.Decompression
             public sbyte f_1;
             public byte f_2;
             public byte f_3;
-            public byte f_4;
+            public byte virt_width;
             public byte unused;
             public byte width;
             public byte height;

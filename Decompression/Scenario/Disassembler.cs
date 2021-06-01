@@ -256,6 +256,8 @@ namespace ShinDataUtil.Decompression.Scenario
 
         private string ApplyStringFixup(string str)
         {
+            // this is done by MessageTextParser. I have no idea why, but seems like kind of normalization
+            // TODO: do we need to reverse it when assembling the scenario?
             var fixupTable = new[]
             {
                 '\u3000', '\u3002', '\u300c', '\u300d', '\u3001', '\u2026', '\u3092', '\u3041', '\u3043', '\u3045',

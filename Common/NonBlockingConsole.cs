@@ -25,7 +25,7 @@ namespace ShinDataUtil
                         switch (value)
                         {
                             case string s:
-                                Console.WriteLine(s);
+                                Console.Write(s);
                                 break;
                             case TaskCompletionSource<object?> t:
                                 t.SetResult(null);
@@ -42,7 +42,8 @@ namespace ShinDataUtil
             Thread.Start();
         }
 
-        public static void WriteLine(string value) => Queue.Add(value);
+        public static void Write(string value) => Queue.Add(value);
+        public static void WriteLine(string value) => Write(value + "\n");
         public static void WriteLine(string format, params object?[] args) => WriteLine(string.Format(format, args));
 
         public static void Flush()
