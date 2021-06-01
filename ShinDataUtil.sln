@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShinDataUtil", "ShinDataUtil.csproj", "{D8EF7184-BE99-4B1B-B01A-8EC90100EE19}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTests", "UnitTests\UnitTests.csproj", "{1B6F54F8-5F1C-4DEF-AFBA-FD5BB1B9917B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,13 @@ Global
 		{D8EF7184-BE99-4B1B-B01A-8EC90100EE19}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D8EF7184-BE99-4B1B-B01A-8EC90100EE19}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D8EF7184-BE99-4B1B-B01A-8EC90100EE19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2DE0A74-7D17-467E-9231-E74C8F4C0826}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2DE0A74-7D17-467E-9231-E74C8F4C0826}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2DE0A74-7D17-467E-9231-E74C8F4C0826}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2DE0A74-7D17-467E-9231-E74C8F4C0826}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B6F54F8-5F1C-4DEF-AFBA-FD5BB1B9917B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B6F54F8-5F1C-4DEF-AFBA-FD5BB1B9917B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B6F54F8-5F1C-4DEF-AFBA-FD5BB1B9917B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B6F54F8-5F1C-4DEF-AFBA-FD5BB1B9917B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

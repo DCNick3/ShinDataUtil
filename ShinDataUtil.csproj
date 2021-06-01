@@ -15,4 +15,16 @@
     <PackageReference Include="FastPngEncoderSharp" Version="1.0.2-beta" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="UnitTests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Remove="UnitTests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="UnitTests\**" />
+  </ItemGroup>
+
 </Project>
