@@ -165,7 +165,7 @@ namespace ShinDataUtil.Util
         }
 
         private readonly Reader _reader = new Reader("".AsMemory());
-        
+
         public void ParseTo(string message, IVisitor visitor)
         {
             // the algorithm is kind of similar to shin::MessageTextParser::parse_to
@@ -173,6 +173,8 @@ namespace ShinDataUtil.Util
             
             // C# uses UTF-16. This means that some chars can be surrogates
             // For simplicity we do not handle them, just asserting if there are any
+
+            visitor.MessageStart();
 
             _reader.Reset(message.AsMemory());
             

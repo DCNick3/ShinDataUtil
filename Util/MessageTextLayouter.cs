@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using ShinDataUtil.Decompression;
 
 namespace ShinDataUtil.Util
 {
@@ -9,9 +11,12 @@ namespace ShinDataUtil.Util
     {
         // this is somewhat similar to the class with the same name
         // but this only tries to handle the spacial layout, not order of things (for now, at least)
+        // not complete
         
-        private const int NewrodinFontWidth = 20;
-        private const int NewrodinFontHeight = 80;
+        /*
+        private const int NewrodinFontSmallerSize = 20;
+        private const int NewrodinFontBiggerSize = 80;
+        */
 
         private double _defaultFontSize;
         private uint _defaultTextColor;
@@ -55,10 +60,10 @@ namespace ShinDataUtil.Util
         private double _currentFade;
 
 
-        private bool _boolB4;
+        private bool _fastForwarding;
         private bool _isFuriganaOpen;
         private double _xPosition;
-        private double _someCharModifier;
+        private double _yPosition;
         private double _voiceVolume;
 
         private Vector2 _someVect;
@@ -68,12 +73,22 @@ namespace ShinDataUtil.Util
         private int _sectionIndex;
         private int _commandCount;
         private double _furiganaStartX;
-
+        
+        private int _finalizedCommandsOffset;
+        
         private int _msgInitValue1;
-        private int _someQuotationMagic;
-        private int _moreQuotationMagic;
+        private int _lineNumber;
+        private int _i110;
+        private int _i114;
+        private int _i118;
+        private int _i11c;
 
         private MtlParam _mtlParam;
+
+        private ShinFontExtractor.LayoutInfo _fontInfo;
+
+        private List<Command> _commands;
+        private List<LineInfo> _linesVect;
         
         [SuppressMessage("ReSharper", "InconsistentNaming")]
         public struct MtlParam
@@ -97,8 +112,38 @@ namespace ShinDataUtil.Util
             public int TextDrawSpeed;
             public int Fade;
         }
+
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
+        struct LineInfo
+        {
+            public double f_0;
+            public double f_4;
+            public double f_8;
+            public double f_c;
+            public double f_10;
+        }
         
-        public MessageTextLayouter(int msgInit1, MtlParam mtlParam, MtlParam2 mtlParam2)
+        public class Command {}
+
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
+        public class CharCommand : Command
+        {
+            public int CodePoint;
+            public bool b_1c;
+            public bool IsInTable1;
+            public bool IsInTable2;
+            public bool HasFurigana;
+            public double Width;
+            public double SomeSizeRelatedThing;
+            public double XPos;
+            public double YPos;
+            public double AnotherSizeRelatedThing1;
+            public double AnotherSizeRelatedThing2;
+            public uint Color;
+            public double Fade;
+        }
+        
+        public MessageTextLayouter(int msgInit1, MtlParam mtlParam, MtlParam2 mtlParam2, ShinFontExtractor.LayoutInfo layoutInfo)
         {
             _mtlParam = mtlParam;
             if (_mtlParam.SmallTextSize == 0) 
@@ -115,8 +160,16 @@ namespace ShinDataUtil.Util
             _defaultFade = Math.Max(0, mtlParam2.Fade);
             
             _msgInitValue1 = msgInit1;
-            _someQuotationMagic = 0;
-            _moreQuotationMagic = 0;
+            _i110 = 0;
+            _i114 = 0;
+            _i118 = 0;
+            _i11c = 0;
+            _lineNumber = 0;
+
+            _fontInfo = layoutInfo;
+
+            _commands = new List<Command>();
+            _linesVect = new List<LineInfo>();
         }
 
         static uint DecodeColor(int colorDec)
@@ -134,7 +187,7 @@ namespace ShinDataUtil.Util
             return 0xffffffffU;
         }
         
-        public static MessageTextLayouter Default(int msgInit1, int mgsInit2)
+        public static MessageTextLayouter Default(int msgInit1, int mgsInit2, ShinFontExtractor.LayoutInfo layoutInfo)
         {
             var mtlParam = new MtlParam
             {
@@ -158,19 +211,23 @@ namespace ShinDataUtil.Util
                 Fade = 200
             };
 
-            return new MessageTextLayouter(msgInit1, mtlParam, mtlParam2);
+            return new MessageTextLayouter(msgInit1, mtlParam, mtlParam2, layoutInfo);
         }
 
 
         public void MessageStart()
         {
+            _commands.Clear();
+
+            _finalizedCommandsOffset = 0;
+            
             _xPosition = 0;
-            _someCharModifier = 0;
+            _yPosition = 0;
             _someCount = 0;
 
             _currentFontSize = 1.0;
 
-            _boolB4 = _isFuriganaOpen = false;
+            _fastForwarding = _isFuriganaOpen = false;
             _voiceVolume = 1.0;
 
             _currentTextColor = _defaultTextColor;
@@ -189,20 +246,122 @@ namespace ShinDataUtil.Util
 
         public void Char(int codePoint)
         {
-            // TODO: is it needed here? The game does that =)
+            if (_lineNumber == 0)
+            {
+                if (_msgInitValue1 != 0)
+                    return;
+                _currentFontSize = .9;
+                _fastForwarding = true;
+            }
+            
             var isInTable1 = Array.IndexOf(CharTable1, codePoint) != -1;
             var isInTable2 = Array.IndexOf(CharTable2, codePoint) != -1;
 
+            var glyphInfo = _fontInfo.GlyphInfo[codePoint];
             
+            var cmd = new CharCommand();
+            //cmd.Time = _currentTime;
+            cmd.CodePoint = codePoint;
+            cmd.IsInTable1 = isInTable1;
+            cmd.IsInTable2 = isInTable2;
+            cmd.HasFurigana = false;
+            if (_isFuriganaOpen)
+            {
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                cmd.IsInTable1 = _furiganaStartX != _xPosition;
+                cmd.HasFurigana = true;
+            }
             
-            throw new System.NotImplementedException();
+            var f = _currentFontSize * _mtlParam.BigTextSize / (_fontInfo.SmallerSize + _fontInfo.BiggerSize);
+            cmd.AnotherSizeRelatedThing2 = f;
+            f *= _mtlParam.f_1c;
+            cmd.AnotherSizeRelatedThing1 = f;
+            cmd.Width = glyphInfo.Width * _currentFontSize;
+
+            cmd.SomeSizeRelatedThing = _mtlParam.BigTextSize * _currentFontSize;
+
+            cmd.XPos = _xPosition;
+            cmd.YPos = _yPosition;
+            cmd.Color = _currentTextColor;
+            cmd.Fade = _currentFade;
+            
+            // here also were some time calculations
+            if (_fastForwarding)
+                cmd.Fade = 0;
+
+            _xPosition += cmd.Width;
+            
+            _commands.Add(cmd);
         }
 
         public void NewLine()
         {
-            //throw new System.NotImplementedException();
+            if (_lineNumber == 0)
+            {
+                if (_msgInitValue1 == 0)
+                {
+                    var saveB21 = _mtlParam.b_21;
+                    _mtlParam.b_21 = true;
+                    _currentFontSize = .9;
+                    PerformLineFeed(_commands.Count, 1);
+                    throw new System.NotImplementedException();
+                }
+            }
+            else
+            {
+                var chars = new List<CharCommand>();
+
+                CharCommand? prevCharacter = null;
+                for (var i = _finalizedCommandsOffset; i < _commands.Count; i++)
+                {
+                    if (_commands[i] is CharCommand {b_1c: false} cmd)
+                    {
+                        if (prevCharacter == null)
+                            cmd.IsInTable1 = false;
+                        else
+                        {
+                            if (cmd.IsInTable1)
+                                prevCharacter.IsInTable2 = true;
+                            else if (prevCharacter.IsInTable2)
+                                cmd.IsInTable1 = true;
+                        }
+                        chars.Add(cmd);
+                        prevCharacter = cmd;
+                    }
+                }
+
+                if (prevCharacter != null) 
+                    prevCharacter.IsInTable2 = false;
+
+                if (chars.Count != 0 && _mtlParam.b_22)
+                {
+                    var fVar5 = _mtlParam.LayoutWidth;
+                    var foundIndex = -1;
+                    for (var i = 0; i < chars.Count; i++)
+                    {
+                        var c = chars[i];
+                        if (fVar5 <= c.XPos || fVar5 + fVar5 * .05 < c.XPos + c.Width)
+                        {
+                            foundIndex = i;
+                            break;
+                        }
+                        
+                    }
+                }
+
+                throw new System.NotImplementedException();
+                if (_i110 < 0)
+                    _i110 = 0;
+            }
+
+            _lineNumber++;
         }
 
+        void PerformLineFeed(int totalCommands, int param3)
+        {
+            throw new System.NotImplementedException();
+        }
+        
         public void LipSyncEnable()
         {
             throw new System.NotImplementedException();

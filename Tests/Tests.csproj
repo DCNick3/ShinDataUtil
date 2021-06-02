@@ -29,4 +29,10 @@
     <Folder Include="resources" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="data_locations.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

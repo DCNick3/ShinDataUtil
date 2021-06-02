@@ -220,6 +220,44 @@ namespace ShinDataUtil.Decompression.Scenario
 
             return mapBuilder.Build();
         }
+        
+        // note that this function takes different "kinds" of instructions
+        // instead of offsets is uses indices
+        // also this version does not autogenerate label names
+        public static ListingAddressMap CreateListing(ImmutableArray<Instruction> instructions,
+            ImmutableDictionary<string, int> labels, TextWriter textWriter)
+        {
+            var creator = new ListingCreator(0);
+
+            var labelsTranspose = labels.
+                ToImmutableDictionary(t => t.Value, t => t.Value);
+            
+            foreach (var (name, index) in labels) 
+                creator._labels[index] = name;
+            
+            foreach (var instr in instructions)
+            foreach (var jumpOffset in instr.CodeXRefOut)
+            {
+                if (creator._labels.ContainsKey(jumpOffset)) 
+                    continue;
+                throw new NotImplementedException("Auto-generation of label names for this form of listing creation");
+            }
+
+            var mapBuilder = new ListingAddressMap.Builder();
+            foreach (var (addr, instr) in instructions.Select((i, x) => (x, i)))
+            {
+                if (creator._labels.TryGetValue(addr, out var name))
+                {
+                    mapBuilder.EmitLine(addr);
+                    textWriter.WriteLine($"{name}:");
+                }
+
+                mapBuilder.EmitLine(addr);
+                textWriter.WriteLine($"        {creator.FormatInstruction(instr)}");
+            }
+
+            return mapBuilder.Build();
+        }
 
         public static string CreateListing(DisassemblyView view, 
             IReadOnlyDictionary<int, string> userLabels)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -87,6 +88,69 @@ namespace ShinDataUtil.Decompression
             }
             
             return 0;
+        }
+
+        public static unsafe LayoutInfo GetLayoutInfo(ReadOnlySpan<byte> data)
+        {
+            var header = MemoryMarshal.Read<Header>(data);
+
+            Trace.Assert(header.magic == 0x34544e46);
+            Trace.Assert(header.version == 1);
+            Trace.Assert(data.Length == header.size);
+            
+            var offsetTable = MemoryMarshal.Cast<byte, int>(data[0x10..0x40010]);var seen = new HashSet<int>();
+
+            var glyphInfo = new Dictionary<int, GlyphInfo>();
+            
+            foreach (var (index, offset) in offsetTable.ToArray().Select((x, i) => (i, x)))
+            {
+                var elementHeader = MemoryMarshal.Read<ElementHeader>(data[offset..]);
+
+                glyphInfo[index] = new GlyphInfo(elementHeader.virt_width, elementHeader.width, elementHeader.height,
+                    elementHeader.f_0, elementHeader.f_1, elementHeader.f_2, elementHeader.f_3);
+            }
+
+            return new LayoutInfo(header.width, header.height, header.size, glyphInfo.ToImmutableDictionary());
+        }
+
+        public class LayoutInfo
+        {
+            public ushort SmallerSize;
+            public ushort BiggerSize;
+            public uint Size;
+            public ImmutableDictionary<int, GlyphInfo> GlyphInfo;
+
+            public LayoutInfo(ushort smallerSize, ushort biggerSize, uint size, ImmutableDictionary<int, GlyphInfo> glyphInfo)
+            {
+                SmallerSize = smallerSize;
+                BiggerSize = biggerSize;
+                Size = size;
+                GlyphInfo = glyphInfo;
+            }
+        }
+
+        public readonly struct GlyphInfo
+        {
+            public GlyphInfo(byte virtualWidth, byte width, byte height, 
+                sbyte unkOffset1, sbyte unkOffset2, byte usedWidth, byte usedHeight)
+            {
+                VirtualWidth = virtualWidth;
+                Width = width;
+                Height = height;
+                UnkOffset1 = unkOffset1;
+                UnkOffset2 = unkOffset2;
+                UsedWidth = usedWidth;
+                UsedHeight = usedHeight;
+            }
+
+            public readonly byte VirtualWidth;
+            public readonly byte Width;
+            public readonly byte Height;
+            
+            public readonly sbyte UnkOffset1;
+            public readonly sbyte UnkOffset2;
+            public readonly byte UsedWidth;
+            public readonly byte UsedHeight;
         }
         
         private struct Header

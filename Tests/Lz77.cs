@@ -19,7 +19,7 @@ namespace UnitTests
 
                 var rnd = new Random(42);
                 for (var i = 0; i < 100; i++) {
-                    var bb = new byte[100000];
+                    var bb = new byte[10000];
                     rnd.NextBytes(bb);
                     yield return bb;
                 }

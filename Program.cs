@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -7,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FastPngEncoderSharp;
+using ShinDataUtil.Common.Scenario;
 using ShinDataUtil.Compression;
 using ShinDataUtil.Compression.Scenario;
 using ShinDataUtil.Decompression;
@@ -422,32 +424,49 @@ namespace ShinDataUtil
 
         private static int ScenarioLayout(ReadOnlySpan<string> args)
         {
-            if (args.Length != 1)
+            if (args.Length != 3)
             {
-                Console.Error.WriteLine("Usage: ShinDataUtil scenario-layout [asmdir]");
+                Console.Error.WriteLine("Usage: ShinDataUtil scenario-layout [fntfile] [asmfile] [outasmfile]");
                 return 1;
             }
 
-            var asmdir = args[0];
+            var fntfile = args[0];
+            var asmfile = args[1];
+            var outasmfile = args[2];
+
+            var fontInfo = ShinFontExtractor.GetLayoutInfo(File.ReadAllBytes(fntfile));
             
-            using var codeFile = File.OpenText(asmdir + "/listing.asm");
+            using var codeFile = File.OpenText(asmfile);
 
             var asmParser = new Parser(codeFile);
             var (instructions, lab) = asmParser.ReadAll();
-
-            var visitor = MessageTextLayouter.Default(0, 0);
+            
+            var visitor = new MessageEnglishLayoutHelper(fontInfo);
             var parser = new MessageTextParser();
+
+            var outInstructions = new List<Instruction>();
             
             foreach (var instr in instructions)
             {
+                var instrUpd = instr;
                 if (instr.Opcode == Opcode.MSGSET)
                 {
                     string message = instr.Data[3];
                     
                     parser.ParseTo(message, visitor);
+                    var v = visitor.Dump();
+
+                    instrUpd = instr.ChangeData(instr.Data.SetItem(3, v));
+                    //Console.WriteLine(v);
+                    //Trace.Assert(message == v);
                 }
+                outInstructions.Add(instrUpd);
             }
-            NonBlockingConsole.WriteLine("");
+
+            using var outfs = File.Create(outasmfile);
+            using var outfstw = new StreamWriter(outfs);
+
+            ListingCreator.CreateListing(outInstructions.ToImmutableArray(), lab, outfstw);
             
             return 0; 
         }
