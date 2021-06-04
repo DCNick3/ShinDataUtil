@@ -453,7 +453,16 @@ namespace ShinDataUtil
                 {
                     string message = instr.Data[3];
 
-                    parser.ParseTo(message, visitor);
+                    try
+                    {
+                        parser.ParseTo(message, visitor);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new AggregateException("While was processing message " +
+                                                     $"{ListingCreator.FormatString(message)}", e);
+                    }
+
                     var v = visitor.Dump();
 
                     instrUpd = instr.ChangeData(instr.Data.SetItem(3, v));

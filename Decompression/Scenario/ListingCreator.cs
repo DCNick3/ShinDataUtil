@@ -25,7 +25,7 @@ namespace ShinDataUtil.Decompression.Scenario
             };
         }
         
-        private string FormatNumber(NumberSpec number)
+        private static string FormatNumber(NumberSpec number)
         {
             if (number.IsConstant)
                 return $"{number.Value}n";
@@ -83,9 +83,7 @@ namespace ShinDataUtil.Decompression.Scenario
                    $"{FormatJumpOffset(instruction.Data[3])}";
         }
 
-        //public static HashSet<ImmutableArray<byte>> arra = new HashSet<ImmutableArray<byte>>();
-
-        private string FormatString(string data)
+        public static string FormatString(string data)
         {
             var decoded = data;//ShiftJis.GetString(data.AsSpan());
             decoded = decoded.Replace("\\", "\\\\").Replace("\"", "\\\"");
