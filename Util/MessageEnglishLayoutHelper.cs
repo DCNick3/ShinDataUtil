@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Text;
 using ShinDataUtil.Decompression;
 
 namespace ShinDataUtil.Util
@@ -104,9 +103,37 @@ namespace ShinDataUtil.Util
             // TODO: not so flexible. Maybe we want some more unicode here =)
             var breakableCharacters = new HashSet<char>
             {
-                ' ', '.', ',', ':', '-'
+                ' '
             };
+
+            void AddRange(int lo, int hi)
+            {
+                for (var i = lo; i <= hi; i++) 
+                    breakableCharacters.Add((char) i);
+            }
             
+            // https://stackoverflow.com/questions/19899554/unicode-range-for-japanese
+            
+            // CJK punctuation
+            AddRange(0x3000, 0x303f);
+            
+            // hiragana & katakana
+            AddRange(0x3040, 0x30ff);
+            
+            // Kanji
+            AddRange(0x3400, 0x4DB5);
+            AddRange(0x4E00, 0x9FCB);
+            AddRange(0xF900, 0xFA6A);
+            
+            // Katakana and Punctuation (Half Width)
+            AddRange(0xFF5F, 0xFF9F);
+            
+            // Miscellaneous Japanese Symbols and Characters
+            AddRange(0x31F0, 0x31FF);
+            AddRange(0x3220, 0x3243);
+            AddRange(0x3280, 0x337F);
+
+
             var currentDumpedWidth = 0.0;
             var dumpedOffset = 0;
             while (dumpedOffset < _lineCommands.Count)

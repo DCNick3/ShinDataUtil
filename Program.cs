@@ -452,13 +452,11 @@ namespace ShinDataUtil
                 if (instr.Opcode == Opcode.MSGSET)
                 {
                     string message = instr.Data[3];
-                    
+
                     parser.ParseTo(message, visitor);
                     var v = visitor.Dump();
 
                     instrUpd = instr.ChangeData(instr.Data.SetItem(3, v));
-                    //Console.WriteLine(v);
-                    //Trace.Assert(message == v);
                 }
                 outInstructions.Add(instrUpd);
             }
