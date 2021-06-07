@@ -13,6 +13,39 @@ namespace ShinDataUtil.Util
         {
             _fontInfo = fontInfo;
             _lineCommands = new List<Command>();
+            
+            // TODO: not so flexible. Maybe we want some more unicode here =)
+            _breakableCharacters = new HashSet<char>
+            {
+                ' '
+            };
+
+            void AddRange(int lo, int hi)
+            {
+                for (var i = lo; i <= hi; i++) 
+                    _breakableCharacters.Add((char) i);
+            }
+            
+            // https://stackoverflow.com/questions/19899554/unicode-range-for-japanese
+            
+            // CJK punctuation
+            AddRange(0x3000, 0x303f);
+            
+            // hiragana & katakana
+            AddRange(0x3040, 0x30ff);
+            
+            // Kanji
+            AddRange(0x3400, 0x4DB5);
+            AddRange(0x4E00, 0x9FCB);
+            AddRange(0xF900, 0xFA6A);
+            
+            // Katakana and Punctuation (Half Width)
+            AddRange(0xFF5F, 0xFF9F);
+            
+            // Miscellaneous Japanese Symbols and Characters
+            AddRange(0x31F0, 0x31FF);
+            AddRange(0x3220, 0x3243);
+            AddRange(0x3280, 0x337F);
         }
         
         struct Command
@@ -35,6 +68,7 @@ namespace ShinDataUtil.Util
         private int _lineNumber;
         private double _fontSize;
         protected double _xPosition;
+        private HashSet<char> _breakableCharacters;
 
         public override void MessageStart()
         {
@@ -100,40 +134,6 @@ namespace ShinDataUtil.Util
 
         private void FlushLine()
         {
-            // TODO: not so flexible. Maybe we want some more unicode here =)
-            var breakableCharacters = new HashSet<char>
-            {
-                ' '
-            };
-
-            void AddRange(int lo, int hi)
-            {
-                for (var i = lo; i <= hi; i++) 
-                    breakableCharacters.Add((char) i);
-            }
-            
-            // https://stackoverflow.com/questions/19899554/unicode-range-for-japanese
-            
-            // CJK punctuation
-            AddRange(0x3000, 0x303f);
-            
-            // hiragana & katakana
-            AddRange(0x3040, 0x30ff);
-            
-            // Kanji
-            AddRange(0x3400, 0x4DB5);
-            AddRange(0x4E00, 0x9FCB);
-            AddRange(0xF900, 0xFA6A);
-            
-            // Katakana and Punctuation (Half Width)
-            AddRange(0xFF5F, 0xFF9F);
-            
-            // Miscellaneous Japanese Symbols and Characters
-            AddRange(0x31F0, 0x31FF);
-            AddRange(0x3220, 0x3243);
-            AddRange(0x3280, 0x337F);
-
-
             var currentDumpedWidth = 0.0;
             var dumpedOffset = 0;
             while (dumpedOffset < _lineCommands.Count)
@@ -157,7 +157,7 @@ namespace ShinDataUtil.Util
                 {
                     for (var i = toDumpEnd - 1; i >= dumpedOffset; i--)
                     {
-                        if (!breakableCharacters.Contains(_lineCommands[i].Value[0]))
+                        if (!_breakableCharacters.Contains(_lineCommands[i].Value[0]))
                             continue;
                         breakIndex = i + 1;
                         break;
