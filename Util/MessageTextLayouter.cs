@@ -129,7 +129,7 @@ namespace ShinDataUtil.Util
         public class CharCommand : Command
         {
             public int CodePoint;
-            public bool b_1c;
+            public bool b_1c; // is it modified by the game at all?
             public bool IsInTable1;
             public bool IsInTable2;
             public bool HasFurigana;

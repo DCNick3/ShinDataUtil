@@ -70,6 +70,11 @@ namespace ShinDataUtil.Util
         protected double _xPosition;
         private HashSet<char> _breakableCharacters;
 
+        private int _bracketState;
+        private int _bracketCodepoint;
+        private int _bracketDepth;
+        private double _bracketOffset;
+
         public override void MessageStart()
         {
             base.MessageStart();
@@ -77,6 +82,8 @@ namespace ShinDataUtil.Util
             _lineNumber = 0;
             _xPosition = 0;
             _fontSize = _defaultFontSize;
+
+            _bracketState = 0;
         }
 
         protected override void Emit(string s)
@@ -134,6 +141,14 @@ namespace ShinDataUtil.Util
 
         private void FlushLine()
         {
+            if (_lineNumber == 0)
+            {
+                foreach (var cmd in _lineCommands) 
+                    Sb.Append(cmd.Value);
+                _lineCommands.Clear();
+                return;
+            }
+
             var currentDumpedWidth = 0.0;
             var dumpedOffset = 0;
             while (dumpedOffset < _lineCommands.Count)
@@ -172,6 +187,49 @@ namespace ShinDataUtil.Util
                     Sb.Append(_lineCommands[i].Value);
                 if (mustBreak)
                     Sb.Append("@r");
+
+                if (_bracketState == 0)
+                    for (var i = dumpedOffset; i < breakIndex; i++)
+                    {
+                        if (_lineCommands[i].Value[0] == '@') continue;
+                        var c = _lineCommands[i].Value[0];
+
+                        // dangerous: code below assumes that the next character would be the closing bracket
+                        if (c != '「' && c != '（' && c != '『')
+                        {
+                            _bracketState = -1;
+                            break;
+                        }
+
+                        _bracketState = 1;
+                        _layoutWidth += _bracketOffset;
+                        _bracketOffset = _lineCommands[i].Width;
+                        _bracketCodepoint = c;
+                        _bracketDepth = 0;
+                        _layoutWidth -= _bracketOffset;
+                        
+                        break;
+                    }
+                
+                if (_bracketState == 1)
+                    for (var i = dumpedOffset; i < breakIndex; i++)
+                    {
+                        if (_lineCommands[i].Value[0] == '@') continue;
+                        var c = _lineCommands[i].Value[0];
+
+                        if (c == _bracketCodepoint)
+                            _bracketDepth++;
+                        if (c == _bracketCodepoint + 1)
+                            _bracketDepth--;
+                    }
+
+                if (_bracketDepth <= 0)
+                {
+                    _layoutWidth -= _bracketOffset;
+                    _bracketOffset = 0;
+                    _bracketState = 0;
+                }
+                
                 dumpedOffset = breakIndex;
             }
 
@@ -184,6 +242,8 @@ namespace ShinDataUtil.Util
             base.NewLine();
             _lineNumber++;
             FlushLine();
+            if (_bracketState == -1)
+                _bracketState = 0;
         }
 
         public override string Dump()
