@@ -60,9 +60,10 @@ namespace ShinDataUtil.Util
             }
         }
 
-        protected double _defaultFontSize = 1;
-        protected double _bigTextSize = 50;
-        protected double _layoutWidth = 1500;
+        protected const double _defaultFontSize = 1;
+        protected const double _bigTextSize = 50;
+        
+        protected double _layoutWidth;
 
         private List<Command> _lineCommands;
         private int _lineNumber;
@@ -84,6 +85,7 @@ namespace ShinDataUtil.Util
             _fontSize = _defaultFontSize;
 
             _bracketState = 0;
+            _layoutWidth = 1500;
         }
 
         protected override void Emit(string s)
@@ -225,7 +227,7 @@ namespace ShinDataUtil.Util
 
                 if (_bracketDepth <= 0)
                 {
-                    _layoutWidth -= _bracketOffset;
+                    _layoutWidth += _bracketOffset;
                     _bracketOffset = 0;
                     _bracketState = 0;
                 }
