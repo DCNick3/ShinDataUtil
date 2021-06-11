@@ -445,6 +445,21 @@ namespace ShinDataUtil
             var parser = new MessageTextParser();
 
             var outInstructions = new List<Instruction>();
+
+            string ProcessMessage(string message)
+            {
+                try
+                {
+                    parser.ParseTo(message, visitor);
+                }
+                catch (Exception e)
+                {
+                    throw new AggregateException("While was processing message " +
+                                                 $"{ListingCreator.FormatString(message)}", e);
+                }
+
+                return visitor.Dump();
+            }
             
             foreach (var instr in instructions)
             {
@@ -452,20 +467,12 @@ namespace ShinDataUtil
                 if (instr.Opcode == Opcode.MSGSET)
                 {
                     string message = instr.Data[3];
-
-                    try
-                    {
-                        parser.ParseTo(message, visitor);
-                    }
-                    catch (Exception e)
-                    {
-                        throw new AggregateException("While was processing message " +
-                                                     $"{ListingCreator.FormatString(message)}", e);
-                    }
-
-                    var v = visitor.Dump();
-
-                    instrUpd = instr.ChangeData(instr.Data.SetItem(3, v));
+                    instrUpd = instr.ChangeData(instr.Data.SetItem(3, ProcessMessage(message)));
+                }
+                else if (instr.Opcode == Opcode.LOGSET)
+                {
+                    string message = instr.Data[0];
+                    instrUpd = instr.ChangeData(instr.Data.SetItem(0, ProcessMessage(message)));
                 }
                 outInstructions.Add(instrUpd);
             }
