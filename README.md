@@ -39,6 +39,8 @@ Subcommands:
 
 - `rom-build outrom [infile targetname]...` - build a ROM from scratch from specified pairs of source files and their target names
 
-- `rom-build-from-dir [outrom] [indir]` - build a ROM from scratch from specified root directory. All files in the directory will be put to the rom with the same name
+- `rom-build-from-dir outrom indir` - build a ROM from scratch from specified root directory. All files in the directory will be put to the rom with the same name
 
-- `txa-encode [srcdir] [outtxa]` - build a TXA from the specified directory (needs an `index.txt` file to function)
+- `txa-encode srcdir outtxa` - build a TXA from the specified directory (needs an `index.txt` file to function)
+
+- `scenario-layout [--ignore-logset] fntfile asmfile outasmfile` - transform the specified scenario asm file, doing word wrapping according to mixed English/Japanese rules. Specify `--ignore-logset` to make the layouter not modify messages of `LOGSET`. Useful, as the original game script has a typo there (`r@` vs `@r`).

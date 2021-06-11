@@ -424,9 +424,24 @@ namespace ShinDataUtil
 
         private static int ScenarioLayout(ReadOnlySpan<string> args)
         {
+            var ignoreLogset = false;
+            while (args.Length > 0 && args[0].StartsWith("--"))
+            {
+                var flag = args[0][2..];
+                args = args[1..];
+                switch (flag)
+                {
+                    case "ignore-logset":
+                        ignoreLogset = true;
+                        break;
+                    default:
+                        throw new ArgumentException("Unknown flag: --" + flag);
+                }
+            }
+
             if (args.Length != 3)
             {
-                Console.Error.WriteLine("Usage: ShinDataUtil scenario-layout [fntfile] [asmfile] [outasmfile]");
+                Console.Error.WriteLine("Usage: ShinDataUtil scenario-layout [--ignore-logset] [fntfile] [asmfile] [outasmfile]");
                 return 1;
             }
 
@@ -469,7 +484,7 @@ namespace ShinDataUtil
                     string message = instr.Data[3];
                     instrUpd = instr.ChangeData(instr.Data.SetItem(3, ProcessMessage(message)));
                 }
-                else if (instr.Opcode == Opcode.LOGSET)
+                else if (!ignoreLogset && instr.Opcode == Opcode.LOGSET)
                 {
                     string message = instr.Data[0];
                     instrUpd = instr.ChangeData(instr.Data.SetItem(0, ProcessMessage(message)));
