@@ -14,7 +14,7 @@ namespace ShinDataUtil.Decompression
 {
     public static unsafe class ShinTxaExtractor
     {
-        public static long Extract(ReadOnlySpan<byte> data, string destinationDirectory)
+        public static long Extract(ReadOnlySpan<byte> data, string destinationDirectory, bool ignoreFileSize = false)
         {
             var header = MemoryMarshal.Read<TxaHeader>(data);
 
@@ -22,7 +22,8 @@ namespace ShinDataUtil.Decompression
             
             Trace.Assert(header.magic == 0x34415854);
             Trace.Assert(header.version == 2);
-            Trace.Assert(header.file_size == data.Length);
+            if (!ignoreFileSize)
+                Trace.Assert(header.file_size == data.Length);
             Trace.Assert(header.always_zero == 0);
 
             var virtualIndexToActualIndex = new int[header.count];

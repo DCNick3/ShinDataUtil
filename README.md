@@ -23,7 +23,7 @@ Subcommands:
 
 - `[rom-]font-extract [romname] fntname outname` - extract an FNT file (optionally from rom) to a bunch of png files
 
-- `[rom-]txa-extract [romname] txaname outname` - extract an TXA file (optionally from rom) to a bunch of png files
+- `[rom-]txa-extract {--ignore-file-size} [romname] txaname outname` - extract an TXA file (optionally from rom) to a bunch of png files. `ignore-file-size` makes the tool ignore the file size specified in txa header
 
 - `[rom-]sysse-extract [romname] syssename outname` - extract a sysse.bin file (optionally from rom) to a bunch of wav files
 

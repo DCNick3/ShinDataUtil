@@ -261,8 +261,9 @@ namespace ShinDataUtil
             return 0;
         }
 
-        static int DecodePicture(ReadOnlyMemory<byte> picdata, string _, string outname)
+        static int DecodePicture(ReadOnlyMemory<byte> picdata, string _, string outname, ImmutableArray<string> options)
         {
+            Trace.Assert(options.Length == 0);
             var (image, effectiveSize) = ShinPictureDecoder.DecodePicture(picdata.Span);
             
             FastPngEncoder.WritePngToFile(outname, image, effectiveSize);
@@ -273,8 +274,9 @@ namespace ShinDataUtil
             return 0;
         }
 
-        static int RemuxSound(ReadOnlyMemory<byte> nxadata, string nxaname, string outname)
+        static int RemuxSound(ReadOnlyMemory<byte> nxadata, string nxaname, string outname, ImmutableArray<string> options)
         {
+            Trace.Assert(options.Length == 0);
             using var outstream = File.OpenWrite(outname);
 
             ShinOpusRemuxer.Remux(nxadata.Span, outstream, nxaname);
@@ -338,8 +340,9 @@ namespace ShinDataUtil
             return 0;
         }
 
-        static int FontExtract(ReadOnlyMemory<byte> fntdata, string _, string outname)
+        static int FontExtract(ReadOnlyMemory<byte> fntdata, string _, string outname, ImmutableArray<string> options)
         {
+            Trace.Assert(options.Length == 0);
             if (Directory.Exists(outname))
                 Directory.Delete(outname, true);
             Directory.CreateDirectory(outname);
@@ -349,19 +352,32 @@ namespace ShinDataUtil
             return 0;
         }
 
-        static int TxaExtract(ReadOnlyMemory<byte> txadata, string _, string outname)
+        static int TxaExtract(ReadOnlyMemory<byte> txadata, string _, string outname, ImmutableArray<string> options)
         {
+            var ignoreFileSize = false;
+            foreach (var option in options)
+            {
+                if (option == "--ignore-file-size")
+                    ignoreFileSize = true;
+                else
+                {
+                    Console.Error.WriteLine($"Unknown option: {option}");
+                    return 1;
+                }
+            }
+            
             if (Directory.Exists(outname))
                 Directory.Delete(outname, true);
             Directory.CreateDirectory(outname);
             
-            ShinTxaExtractor.Extract(txadata.Span, outname);
+            ShinTxaExtractor.Extract(txadata.Span, outname, ignoreFileSize);
             
             return 0;
         }
 
-        static int SysseExtract(ReadOnlyMemory<byte> syssedata, string _, string outname)
+        static int SysseExtract(ReadOnlyMemory<byte> syssedata, string _, string outname, ImmutableArray<string> options)
         {
+            Trace.Assert(options.Length == 0);
             if (Directory.Exists(outname))
                 Directory.Delete(outname, true);
             Directory.CreateDirectory(outname);
@@ -371,8 +387,9 @@ namespace ShinDataUtil
             return 0;
         }
 
-        static int BustupExtract(ReadOnlyMemory<byte> bupdata, string _, string outname)
+        static int BustupExtract(ReadOnlyMemory<byte> bupdata, string _, string outname, ImmutableArray<string> options)
         {
+            Trace.Assert(options.Length == 0);
             if (Directory.Exists(outname))
                 Directory.Delete(outname, true);
             Directory.CreateDirectory(outname);
@@ -382,8 +399,9 @@ namespace ShinDataUtil
             return 0;
         }
 
-        private static int MaskExtract(ReadOnlyMemory<byte> mskdata, string _, string outname)
+        private static int MaskExtract(ReadOnlyMemory<byte> mskdata, string _, string outname, ImmutableArray<string> options)
         {
+            Trace.Assert(options.Length == 0);
             var image = ShinMaskDecompress.Decompress(mskdata.Span);
             
             FastPngEncoder.WritePngToFile(outname, image);
@@ -391,8 +409,9 @@ namespace ShinDataUtil
             return 0;
         }
 
-        private static int ScenarioDecompile(ReadOnlyMemory<byte> snrdata, string _, string outname)
+        private static int ScenarioDecompile(ReadOnlyMemory<byte> snrdata, string _, string outname, ImmutableArray<string> options)
         {
+            Trace.Assert(options.Length == 0);
             ShinScenarioDecompiler.Decompile(snrdata, outname);
             
             return 0;
@@ -565,7 +584,8 @@ namespace ShinDataUtil
         private class ActionList
         {
             public delegate int Action(ReadOnlySpan<string> args);
-            public delegate int SingleFileProcessingAction(ReadOnlyMemory<byte> input, string inputname, string output);
+            public delegate int SingleFileProcessingAction(ReadOnlyMemory<byte> input, string inputname, string output, 
+                ImmutableArray<string> options);
 
             private Dictionary<string, Action> actions;
 
@@ -589,9 +609,16 @@ namespace ShinDataUtil
             {
                 actions.Add(name, (args) =>
                 {
+                    var options = new List<string>();
+                    while (args.Length > 0 && args[0].StartsWith("--"))
+                    {
+                        options.Add(args[0]);
+                        args = args[1..];
+                    }
+
                     if (args.Length != 2)
                     {
-                        Console.Error.WriteLine($"Usage: ShinDataUtil {name} [{inputName}file] [outname]");
+                        Console.Error.WriteLine($"Usage: ShinDataUtil {name} {{--options...}} [{inputName}file] [outname]");
                         return 1;
                     }
 
@@ -600,11 +627,18 @@ namespace ShinDataUtil
 
                     var indata = File.ReadAllBytes(inname);
 
-                    return action(indata, inname, outname);
+                    return action(indata, inname, outname, options.ToImmutableArray());
                 });
 
                 actions.Add($"rom-{name}", (args) =>
                 {
+                    var options = new List<string>();
+                    while (args.Length > 0 && args[0].StartsWith("--"))
+                    {
+                        options.Add(args[0]);
+                        args = args[1..];
+                    }
+                    
                     if (args.Length != 3)
                     {
                         Console.Error.WriteLine($"Usage: ShinDataUtil rom-{name} [romname] [{inputName}name] [outname]");
@@ -618,7 +652,7 @@ namespace ShinDataUtil
                     using var archive = (ReadableGameArchive)new FileReadableGameArchive(romname);
                     using var infile = archive.OpenFile(inname);
 
-                    return action(infile.Data, inname, outname);
+                    return action(infile.Data, inname, outname, options.ToImmutableArray());
                 });
             }
 
