@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
@@ -46,7 +47,24 @@ namespace ShinDataUtil.Compression
         public static void EncodeDifferential(Image<Rgba32> source, int dx, int dy, int width, int height,
             Span<byte> data, int stride)
         {
-            throw new NotImplementedException();
+            if (height > 0)
+            {
+                var firstRow = MemoryMarshal.Cast<Rgba32, byte>(source.GetPixelRowSpan(dy)[dx..]);
+                firstRow.CopyTo(data[..(width*4)]);
+                data = data[stride..];
+
+                for (int j = 1; j < height; j++)
+                {
+                    var previousRow = MemoryMarshal.Cast<Rgba32, byte>(source.GetPixelRowSpan(dy + j - 1)[dx..]);
+                    var row = MemoryMarshal.Cast<Rgba32, byte>(source.GetPixelRowSpan(dy + j)[dx..]);
+                    for (var i = 0; i < width * 4; i++)
+                    {
+                        data[i] = (byte) (row[i] - previousRow[i]);
+                    }
+
+                    data = data[stride..];
+                }
+            }
         }
         
         public ShinTextureCompress(Image<Rgba32> image)
