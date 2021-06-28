@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using SixLabors.ImageSharp;
@@ -26,7 +28,7 @@ namespace ShinDataUtil.Decompression
             for (var i = 0; i < entries.Length; i++)
                 entries[i] = entriesData[i];
 
-            int totalWidth = header.effectiveHeight, totalHeight = header.effectiveWidth;
+            int totalWidth = header.effectiveWidth, totalHeight = header.effectiveHeight;
             foreach (var entry in entries)
             {
                 var size = ShinTextureDecompress.GetImageFragmentSize(entry.GetData(picture));

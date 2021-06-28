@@ -12,7 +12,7 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta0007" />
     <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
-    <PackageReference Include="FastPngEncoderSharp" Version="1.0.2-beta" />
+    <PackageReference Include="FastPngEncoderSharp" Version="1.0.3-beta" />
   </ItemGroup>
 
   <ItemGroup>
