@@ -8,6 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using FastPngEncoderSharp;
+using Newtonsoft.Json;
 using ShinDataUtil.Common.Scenario;
 using ShinDataUtil.Compression;
 using ShinDataUtil.Compression.Scenario;
@@ -15,6 +16,10 @@ using ShinDataUtil.Decompression;
 using ShinDataUtil.Decompression.Scenario;
 using ShinDataUtil.Scenario;
 using ShinDataUtil.Util;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.Primitives;
 
 namespace ShinDataUtil
 {
@@ -268,9 +273,20 @@ namespace ShinDataUtil
             
             FastPngEncoder.WritePngToFile(outname, image, effectiveSize);
             
-            //using var fd = File.OpenWrite(outname);
-            //image.SaveAsPng(fd);
+            return 0;
+        }
 
+        static int DumpPictureFragments(ReadOnlyMemory<byte> picdata, string _, string outname, ImmutableArray<string> options)
+        {
+            Trace.Assert(options.Length == 0);
+            var fragment = ShinPictureDecoder.DumpPictureFragments(picdata.Span);
+
+            var dirname = Path.GetDirectoryName(outname) ?? throw new NullReferenceException();
+            if (!Directory.Exists(dirname))
+                Directory.CreateDirectory(dirname);
+            
+            File.WriteAllText(outname, JsonConvert.SerializeObject(fragment, Formatting.Indented));
+            
             return 0;
         }
 
@@ -675,6 +691,7 @@ namespace ShinDataUtil
             actions.AddAction("rom-extract-all", _ => ExtractAllFiles(_, false, false));
             actions.AddAction("rom-extract-all-with-decode", _ => ExtractAllFiles(_, true, false));
             actions.AddSingleFileProcessingAction("pic-decode", "pic", DecodePicture);
+            actions.AddSingleFileProcessingAction("dump-pic-fragments", "pic", DumpPictureFragments);
             actions.AddSingleFileProcessingAction("sound-remux", "nxa", RemuxSound);
             actions.AddAction("lz77-test", Lz77Test);
             actions.AddAction("txa-encode", TxaEncode);

@@ -43,6 +43,57 @@ namespace ShinDataUtil.Decompression
             return (image, (header.effectiveWidth, header.effectiveHeight));
         }
 
+        public struct FragmentInfo
+        {
+            public int X, Y, Width, Height;
+            public int OpaqueVertexCount, TransparentVertexCount;
+            public ImmutableArray<ShinTextureDecompress.VertexEntry> Vertices;
+        }
+        
+        public static ImmutableArray<FragmentInfo> DumpPictureFragments(ReadOnlySpan<byte> picture)
+        {
+            var header = MemoryMarshal.Read<PictureHeader>(picture);
+            var entriesData = MemoryMarshal.Cast<byte, PictureHeaderFragmentEntry>(
+                picture[Marshal.SizeOf<PictureHeader>()..]);
+
+            Trace.Assert(header.magic == 0x34434950);
+            
+            var entries = new PictureHeaderFragmentEntry[header.entryCount];
+            for (var i = 0; i < entries.Length; i++)
+                entries[i] = entriesData[i];
+
+            int totalWidth = header.effectiveHeight, totalHeight = header.effectiveWidth;
+            foreach (var entry in entries)
+            {
+                var size = ShinTextureDecompress.GetImageFragmentSize(entry.GetData(picture));
+                totalWidth = Math.Max(totalWidth, entry.x + size.Item1);
+                totalHeight = Math.Max(totalHeight, entry.y + size.Item2);
+            }
+
+            var res = new List<FragmentInfo>();
+            
+            var image = new Image<Rgba32>(totalWidth, totalHeight);
+            foreach (var entry in entries)
+            {
+                var (width, height) = ShinTextureDecompress.GetImageFragmentSize(entry.GetData(picture));
+                
+                var (vertices, opaqueVertexCount, transparentVertexCount) = 
+                    ShinTextureDecompress.DecodeImageFragment(image, entry.x, entry.y, entry.GetData(picture));
+                res.Add(new FragmentInfo
+                {
+                    X = entry.x,
+                    Y = entry.y,
+                    Width = width,
+                    Height = height,
+                    Vertices = vertices.ToImmutableArray(),
+                    OpaqueVertexCount = opaqueVertexCount,
+                    TransparentVertexCount = transparentVertexCount
+                });
+            }
+
+            return res.ToImmutableArray();
+        }
+
         private struct PictureHeader
         {
 #pragma warning disable 649
