@@ -281,19 +281,13 @@ namespace ShinDataUtil
         static int DumpPictureFragments(ReadOnlyMemory<byte> picdata, string _, string outname, ImmutableArray<string> options)
         {
             Trace.Assert(options.Length == 0);
-            var (overlay, fragmentInfos) = ShinPictureDecoder.DumpPictureFragments(picdata.Span);
-
             
             if (Directory.Exists(outname))
                 Directory.Delete(outname, true);
             Directory.CreateDirectory(outname);
+            
+            ShinPictureDecoder.DumpPictureFragments(picdata.Span, outname);
 
-            var fragFilename = Path.Combine(outname, "fragments.json");
-            var maskFilename = Path.Combine(outname, "fragmentMask.png");
-            
-            File.WriteAllText(fragFilename, JsonConvert.SerializeObject(fragmentInfos, Formatting.Indented));
-            FastPngEncoder.WritePngToFile(maskFilename, overlay);
-            
             return 0;
         }
 

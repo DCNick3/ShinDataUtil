@@ -181,7 +181,13 @@ namespace ShinDataUtil.Compression
             Trace.Assert(vertices.Length == (opaqueVerticesCount + transparentVerticesCount));
 
             var useCompressed = compressedSize < decompressedSize;
-
+            if (compressedSize > ushort.MaxValue)
+            {
+                // a very scary kludge
+                // if we can't fit with compressed data - put uncompressed xD
+                useCompressed = false;
+            }
+            
             var header = new PicFragmentHeader
             {
                 height = checked((ushort) height),
