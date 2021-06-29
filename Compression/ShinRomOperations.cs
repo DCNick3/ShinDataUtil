@@ -72,6 +72,8 @@ namespace ShinDataUtil.Compression
             {
                 if (targetName[0] != '/')
                     throw new ArgumentException("Entry name must start with a '/'.", nameof(targetName));
+                if (targetName.Any(c => c >= 128))
+                    throw new ArgumentException("Entry name must be ascii-only.");
                 var parts = targetName.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
                 var currentEntry = root;
                 foreach (var part in parts[..^1])
@@ -118,7 +120,10 @@ namespace ShinDataUtil.Compression
             
             long dataSizeEstimate = dirLinearizedEntries.Count * 64;
 
-            foreach (var (source, targetName) in files)
+            foreach (var (source, targetName) in files
+                    // the game requires lexicographical ordering inside the directory
+                    // I __think__ this will make it =)
+                .OrderBy(x => x.targetName))
             {
                 AddEntry(source, targetName);
                 dataSizeEstimate += source.GetApproximateSize();
