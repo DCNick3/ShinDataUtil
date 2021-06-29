@@ -618,7 +618,9 @@ namespace ShinDataUtil
 
             var infiles = Directory.EnumerateFiles(indir, "*", SearchOption.AllDirectories);
 
-            var files = infiles.Select(_ => (_, "/" + Path.GetRelativePath(indir, _))).ToArray();
+            var files = infiles.Select(_ => (_, "/" + Path.GetRelativePath(indir, _)
+                    .Replace(Path.DirectorySeparatorChar, '/')
+                )).ToArray();
 
             using var outromfile = File.Create(outrom);
             
