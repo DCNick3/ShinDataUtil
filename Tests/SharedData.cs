@@ -17,6 +17,7 @@ namespace UnitTests
             
             Instance.ScenarioInstructions = ReadInstructions(Instance.ScenarioDecodedPath);
             Instance.FontLayoutInfo = ShinFontExtractor.GetLayoutInfo(File.ReadAllBytes(Instance.FontPath));
+            Instance.GameArchive = new FileReadableGameArchive(Instance.DataRomPath);
         }
 
         static (ImmutableArray<Instruction> instructions, ImmutableDictionary<string, int> labels) ReadInstructions(string path)
@@ -36,6 +37,7 @@ namespace UnitTests
 
         public (ImmutableArray<Instruction> instructions, 
             ImmutableDictionary<string, int> labels) ScenarioInstructions;
+        public ReadableGameArchive GameArchive { get; set; }
         
         public ShinFontExtractor.LayoutInfo FontLayoutInfo;
     }

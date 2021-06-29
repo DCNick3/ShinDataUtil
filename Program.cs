@@ -17,6 +17,7 @@ using ShinDataUtil.Decompression.Scenario;
 using ShinDataUtil.Scenario;
 using ShinDataUtil.Util;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.Primitives;
@@ -114,8 +115,9 @@ namespace ShinDataUtil
                     {
                         case ".pic":
                         {
-                            NonBlockingConsole.WriteLine("IMG  {0}", file.Path);
-                            var (image, effectiveSize) = ShinPictureDecoder.DecodePicture(s.Data.Span);
+                            NonBlockingConsole.WriteLine("PIC  {0}", file.Path);
+                            var (image, effectiveSize, _) = ShinPictureDecoder.DecodePicture(s.Data.Span);
+
                             if (!dryRun)
                             {
                                 FastPngEncoder.WritePngToFile(basePath + ".png", image, effectiveSize);
@@ -269,7 +271,7 @@ namespace ShinDataUtil
         static int DecodePicture(ReadOnlyMemory<byte> picdata, string _, string outname, ImmutableArray<string> options)
         {
             Trace.Assert(options.Length == 0);
-            var (image, effectiveSize) = ShinPictureDecoder.DecodePicture(picdata.Span);
+            var (image, effectiveSize, _) = ShinPictureDecoder.DecodePicture(picdata.Span);
             
             FastPngEncoder.WritePngToFile(outname, image, effectiveSize);
             
@@ -279,13 +281,18 @@ namespace ShinDataUtil
         static int DumpPictureFragments(ReadOnlyMemory<byte> picdata, string _, string outname, ImmutableArray<string> options)
         {
             Trace.Assert(options.Length == 0);
-            var fragment = ShinPictureDecoder.DumpPictureFragments(picdata.Span);
+            var (overlay, fragmentInfos) = ShinPictureDecoder.DumpPictureFragments(picdata.Span);
 
-            var dirname = Path.GetDirectoryName(outname) ?? throw new NullReferenceException();
-            if (!Directory.Exists(dirname))
-                Directory.CreateDirectory(dirname);
             
-            File.WriteAllText(outname, JsonConvert.SerializeObject(fragment, Formatting.Indented));
+            if (Directory.Exists(outname))
+                Directory.Delete(outname, true);
+            Directory.CreateDirectory(outname);
+
+            var fragFilename = Path.Combine(outname, "fragments.json");
+            var maskFilename = Path.Combine(outname, "fragmentMask.png");
+            
+            File.WriteAllText(fragFilename, JsonConvert.SerializeObject(fragmentInfos, Formatting.Indented));
+            FastPngEncoder.WritePngToFile(maskFilename, overlay);
             
             return 0;
         }
@@ -340,7 +347,7 @@ namespace ShinDataUtil
 
         static int TxaEncode(ReadOnlySpan<string> args)
         {
-            if (args.Length < 1)
+            if (args.Length < 2)
             {
                 Console.Error.WriteLine("Usage: ShinDataUtil txa-encode [srcdir] [outfile]");
                 return 1;
@@ -352,6 +359,29 @@ namespace ShinDataUtil
             using var outtxa = File.Create(outfile);
             
             ShinTxaEncoder.BuildTxa(outtxa, srcdir);
+
+            return 0;
+        }
+
+        static int PicEncode(ReadOnlySpan<string> args)
+        {
+            if (args.Length < 2)
+            {
+                Console.Error.WriteLine("Usage: ShinDataUtil pic-encode [srcpng] [outfile]");
+                return 1;
+            }
+
+            var srcpng = args[0];
+            var outfile = args[1];
+
+            using var outpic = File.Create(outfile);
+            using var fs = File.OpenRead(srcpng);
+            using var image = Image.Load<Rgba32>(fs, new PngDecoder());
+
+            var rnd = new Random((int)Environment.TickCount64 ^ Environment.ProcessId);
+            var pictureId = (uint)rnd.Next();
+            
+            ShinPictureEncoder.EncodePicture(outpic, image, image.Width, image.Height, pictureId);
 
             return 0;
         }
@@ -380,11 +410,11 @@ namespace ShinDataUtil
                     Console.Error.WriteLine($"Unknown option: {option}");
                     return 1;
                 }
-            }
-            
-            if (Directory.Exists(outname))
-                Directory.Delete(outname, true);
-            Directory.CreateDirectory(outname);
+                }
+                
+                if (Directory.Exists(outname))
+                    Directory.Delete(outname, true);
+                Directory.CreateDirectory(outname);
             
             ShinTxaExtractor.Extract(txadata.Span, outname, ignoreFileSize);
             
@@ -695,6 +725,7 @@ namespace ShinDataUtil
             actions.AddSingleFileProcessingAction("sound-remux", "nxa", RemuxSound);
             actions.AddAction("lz77-test", Lz77Test);
             actions.AddAction("txa-encode", TxaEncode);
+            actions.AddAction("pic-encode", PicEncode);
             actions.AddSingleFileProcessingAction("font-extract", "fnt", FontExtract);
             actions.AddSingleFileProcessingAction("txa-extract", "txa", TxaExtract);
             actions.AddSingleFileProcessingAction("sysse-extract", "sysse", SysseExtract);

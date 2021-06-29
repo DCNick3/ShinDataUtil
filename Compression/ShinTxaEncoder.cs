@@ -26,11 +26,11 @@ namespace ShinDataUtil.Compression
         {
             public int Index;
             public int VirtualIndex;
-            public string Name;
+            public string Name = null!;
             public int DataOffset;
             public int DecompressedSize;
             public int CompressedSize;
-            public Image<Rgba32> Image;
+            public Image<Rgba32> Image = null!;
         }
 
         static void CompressElement(Stream outtxa, Image<Rgba32> image, IndexEntry indexEntry, bool useDict)
@@ -53,7 +53,7 @@ namespace ShinDataUtil.Compression
                 if (useDict)
                     ShinTextureCompress.EncodeDict(image, 0, 0, image.Width, image.Height,
                         MemoryMarshal.Cast<byte, Rgba32>(buffer.AsSpan()[..1024]),
-                        buffer.AsSpan()[1024..neededSize], strideBytes);
+                        buffer.AsSpan()[1024..neededSize], strideBytes, Span<byte>.Empty);
                 else
                     ShinTextureCompress.EncodeDifferential(image, 0, 0, image.Width, image.Height,
                         buffer.AsSpan()[..neededSize], strideBytes);
@@ -78,15 +78,6 @@ namespace ShinDataUtil.Compression
             }
         }
 
-        static bool EligibleForDictCompression(Image<Rgba32> image)
-        {
-            HashSet<Rgba32> values = new HashSet<Rgba32>();
-            for (var j = 0; j < image.Height; j++)
-            for (var i = 0; i < image.Width; i++)
-                values.Add(image[i, j]);
-            return values.Count <= 256;
-        }
-
         public static void BuildTxa(Stream outtxa, string sourceDirectory)
         {
             var indexData = File.ReadAllLines(Path.Combine(sourceDirectory, "index.txt"));
@@ -105,7 +96,7 @@ namespace ShinDataUtil.Compression
                 return res;
             }).OrderBy(_ => _.Index).ToImmutableArray();
 
-            var useDict = index.All(x => EligibleForDictCompression(x.Image));
+            var useDict = index.All(x => ShinTextureCompress.EligibleForDictCompression(x.Image));
             
             var headSize = sizeof(TxaHeader);
             foreach (var entry in index)

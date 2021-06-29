@@ -2,10 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.InteropServices;
+using ShinDataUtil.Common;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.Primitives;
 
 namespace ShinDataUtil.Decompression
 {
@@ -16,15 +20,22 @@ namespace ShinDataUtil.Decompression
             Trace.Assert(BitConverter.IsLittleEndian);
         }
         
-        public static (Image<Rgba32>, (int effectiveWidth, int effectiveHeight)) DecodePicture(ReadOnlySpan<byte> picture)
+        public static (Image<Rgba32>, (int effectiveWidth, int effectiveHeight), bool field20) DecodePicture(ReadOnlySpan<byte> picture)
         {
-            var header = MemoryMarshal.Read<PictureHeader>(picture);
-            var entriesData = MemoryMarshal.Cast<byte, PictureHeaderFragmentEntry>(
-                picture[Marshal.SizeOf<PictureHeader>()..]);
+            var header = MemoryMarshal.Read<PicHeader>(picture);
+            var entriesData = MemoryMarshal.Cast<byte, PicHeaderFragmentEntry>(
+                picture[Marshal.SizeOf<PicHeader>()..]);
 
             Trace.Assert(header.magic == 0x34434950);
+            Trace.Assert(header.version == 2);
+            Trace.Assert(header.fileSize == picture.Length);
+            Trace.Assert(header.originX == header.effectiveWidth / 2);
+            Trace.Assert(header.originY == header.effectiveHeight 
+                         || header.originY == header.effectiveHeight / 2
+                         || header.originY == 0);
+            Trace.Assert(header.field20 == 1 || header.field20 == 0);
             
-            var entries = new PictureHeaderFragmentEntry[header.entryCount];
+            var entries = new PicHeaderFragmentEntry[header.entryCount];
             for (var i = 0; i < entries.Length; i++)
                 entries[i] = entriesData[i];
 
@@ -40,25 +51,25 @@ namespace ShinDataUtil.Decompression
             foreach (var entry in entries) 
                 ShinTextureDecompress.DecodeImageFragment(image, entry.x, entry.y, entry.GetData(picture));
 
-            return (image, (header.effectiveWidth, header.effectiveHeight));
+            return (image, (header.effectiveWidth, header.effectiveHeight), header.field20 != 0);
         }
 
         public struct FragmentInfo
         {
-            public int X, Y, Width, Height;
+            public int X, Y, Width, Height, MaxVertToX, MaxVertToY;
             public int OpaqueVertexCount, TransparentVertexCount;
-            public ImmutableArray<ShinTextureDecompress.VertexEntry> Vertices;
+            public ImmutableArray<PicVertexEntry> Vertices;
         }
         
-        public static ImmutableArray<FragmentInfo> DumpPictureFragments(ReadOnlySpan<byte> picture)
+        public static (Image<Rgba32> fragmentsOverlay, ImmutableArray<FragmentInfo>) DumpPictureFragments(ReadOnlySpan<byte> picture)
         {
-            var header = MemoryMarshal.Read<PictureHeader>(picture);
-            var entriesData = MemoryMarshal.Cast<byte, PictureHeaderFragmentEntry>(
-                picture[Marshal.SizeOf<PictureHeader>()..]);
+            var header = MemoryMarshal.Read<PicHeader>(picture);
+            var entriesData = MemoryMarshal.Cast<byte, PicHeaderFragmentEntry>(
+                picture[Marshal.SizeOf<PicHeader>()..]);
 
             Trace.Assert(header.magic == 0x34434950);
             
-            var entries = new PictureHeaderFragmentEntry[header.entryCount];
+            var entries = new PicHeaderFragmentEntry[header.entryCount];
             for (var i = 0; i < entries.Length; i++)
                 entries[i] = entriesData[i];
 
@@ -73,16 +84,36 @@ namespace ShinDataUtil.Decompression
             var res = new List<FragmentInfo>();
             
             var image = new Image<Rgba32>(totalWidth, totalHeight);
+            var fragmentsOverlay = new Image<Rgba32>(header.effectiveWidth, header.effectiveHeight);
+            var colors = new[]
+            {
+                Rgba32.Blue, Rgba32.Brown, Rgba32.Gray, Rgba32.Lime,
+                Rgba32.Aquamarine, Rgba32.IndianRed, Rgba32.LightSkyBlue, Rgba32.Gold, 
+                Rgba32.Azure, Rgba32.Coral, 
+            };
+            var colorIndex = 0;
+            
             foreach (var entry in entries)
             {
+                if (colorIndex >= colors.Length)
+                    colorIndex = 0;
+                
                 var (width, height) = ShinTextureDecompress.GetImageFragmentSize(entry.GetData(picture));
                 
                 var (vertices, opaqueVertexCount, transparentVertexCount) = 
                     ShinTextureDecompress.DecodeImageFragment(image, entry.x, entry.y, entry.GetData(picture));
+                
+                fragmentsOverlay.Mutate(o =>
+                {
+                    o.Fill(colors[colorIndex++], new Rectangle(entry.x, entry.y, width, height));
+                });
+                
                 res.Add(new FragmentInfo
                 {
                     X = entry.x,
                     Y = entry.y,
+                    MaxVertToX = vertices.Max(v => v.toX),
+                    MaxVertToY = vertices.Max(v => v.toY),
                     Width = width,
                     Height = height,
                     Vertices = vertices.ToImmutableArray(),
@@ -91,33 +122,7 @@ namespace ShinDataUtil.Decompression
                 });
             }
 
-            return res.ToImmutableArray();
-        }
-
-        private struct PictureHeader
-        {
-#pragma warning disable 649
-            public uint magic;
-            public uint field4;
-            public uint field8;
-            public uint field12;
-            public ushort effectiveWidth;
-            public ushort effectiveHeight;
-            public uint field20;
-            public uint entryCount;
-            public uint pictureId;
-#pragma warning restore 649
-        }
-
-        private struct PictureHeaderFragmentEntry
-        {
-#pragma warning disable 649
-            public ushort x;
-            public ushort y;
-            public uint offset; /* from the beginning of the picture file */
-            public uint size;
-#pragma warning restore 649
-            public ReadOnlySpan<byte> GetData(ReadOnlySpan<byte> file) => file[(int)offset..(int)(offset + size)];
+            return (fragmentsOverlay, res.ToImmutableArray());
         }
     }
 }

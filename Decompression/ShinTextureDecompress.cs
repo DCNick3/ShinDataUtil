@@ -1,8 +1,14 @@
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using ShinDataUtil.Common;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
+
+namespace ShinDataUtil.Common
+{
+}
 
 namespace ShinDataUtil.Decompression
 {
@@ -11,13 +17,22 @@ namespace ShinDataUtil.Decompression
         public static void DecodeDict(Image<Rgba32> destination, int dx, int dy, int width, int height,
             ReadOnlySpan<Rgba32> dictionary, ReadOnlySpan<byte> input, int inputStride, ReadOnlySpan<byte> inputAlpha)
         {
+            Trace.Assert(inputAlpha.Length == 0 || inputAlpha.Length == input.Length);
+            Trace.Assert(dictionary.Length == 0x100);
+            Trace.Assert(input.Length == inputStride * height);
+            Trace.Assert(width <= inputStride);
+            
             for (var j = 0; j < height; j++)
             {
                 for (var i = 0; i < width; i++)
                 {
                     var v = dictionary[input[i]];
                     if (inputAlpha.Length > 0)
+                    {
+                        Debug.Assert(v.A == 255);
                         v.A = inputAlpha[i];
+                    }
+
                     destination[dx + i, dy + j] = v;
                 }
 
@@ -47,19 +62,27 @@ namespace ShinDataUtil.Decompression
             }
         }
 
-        public static (VertexEntry[], int opaqueVertexCount, int transparentVertexCount) 
+        public static unsafe (PicVertexEntry[], int opaqueVertexCount, int transparentVertexCount) 
             DecodeImageFragment(Image<Rgba32> destination, int dx, int dy, ReadOnlySpan<byte> fragment)
         {
-            var header = MemoryMarshal.Read<FragmentHeader>(fragment);
-            var data = fragment[(header.alignmentAfterHeader * 2 + (header.opaqueVertexCount + header.transparentVertexCount) * 8 + 0x14)..]; // MaGiC
+            var header = MemoryMarshal.Read<PicFragmentHeader>(fragment);
+            var dataOffset = header.alignmentAfterHeader * 2 +
+                             (header.opaqueVertexCount + header.transparentVertexCount) * sizeof(PicVertexEntry) +
+                             sizeof(PicFragmentHeader);
+            var data = fragment.Slice(dataOffset); // MaGiC
 
-            var vertexData = MemoryMarshal.Cast<byte, VertexEntry>(fragment[0x14..(0x14 + (header.opaqueVertexCount + header.transparentVertexCount) * 8)]);
+            var vertexData = MemoryMarshal.Cast<byte, PicVertexEntry>(
+                fragment.Slice(sizeof(PicFragmentHeader)))
+                .Slice(0, header.opaqueVertexCount + header.transparentVertexCount);
+
+            Trace.Assert(header.unknown_bool == 0 || header.unknown_bool == 1);
+            Trace.Assert(dataOffset % 16 == 0);
             
             var vertices = vertexData.ToArray();
             /* we don't really care about them, as they are only needed for more effective rendering */
 
-            var differentialStride = header.width * 4 + 0xf & 0x7ffffff0;
-            var dictionaryStride = header.width + 3 & 0x7ffffffc;
+            var differentialStride = (header.width * 4 + 0xf) & 0x7ffffff0;
+            var dictionaryStride = (header.width + 3) & 0x7ffffffc;
             
             // This holds for pictures, but not for bustup
             //Trace.Assert(header.offsetX == 0 && header.offsetY == 0);
@@ -108,48 +131,14 @@ namespace ShinDataUtil.Decompression
         
         public static (int, int) GetImageFragmentSize(ReadOnlySpan<byte> fragment)
         {
-            var header = MemoryMarshal.Read<FragmentHeader>(fragment);
+            var header = MemoryMarshal.Read<PicFragmentHeader>(fragment);
             return (header.width, header.height);
         }
 
         public static (int, int) GetImageFragmentOffset(ReadOnlySpan<byte> fragment)
         {
-            var header = MemoryMarshal.Read<FragmentHeader>(fragment);
+            var header = MemoryMarshal.Read<PicFragmentHeader>(fragment);
             return (header.offsetX, header.offsetY);
         }
-        
-        private struct FragmentHeader
-        {
-#pragma warning disable 649
-            public ushort compressionFlags;
-            public ushort opaqueVertexCount;
-            public ushort transparentVertexCount;
-            public ushort alignmentAfterHeader;
-            public ushort offsetX;
-            public ushort offsetY;
-            public ushort width;
-            public ushort height;
-            public ushort compressedSize;
-#pragma warning restore 649
-
-            public bool UseDifferentialEncoding => (compressionFlags >> 1 & 1) == 0;
-            public bool UseSeparateAlpha => (compressionFlags & 1) == 0;
-        }
-
-        public struct VertexEntry
-        {
-#pragma warning disable 649
-            public ushort fromX;
-            public ushort fromY;
-            public ushort toX;
-            public ushort toY;
-#pragma warning restore 649
-
-            public bool Contains(int i, int j)
-            {
-                return i >= fromX && i < toX && j >= fromY && j < toY;
-            }
-        }
-
     }
 }

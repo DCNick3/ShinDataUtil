@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using FastPngEncoderSharp;
+using ShinDataUtil.Common;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
@@ -147,7 +148,7 @@ namespace ShinDataUtil.Decompression
 
         private static void CleanupVertices(Image<Rgba32> image,
             int offsetX, int offsetY, int width, int height,
-            IEnumerable<ShinTextureDecompress.VertexEntry> vertices)
+            IEnumerable<PicVertexEntry> vertices)
         {
             var ba = new BitArray(width * height, false);
             foreach (var vertex in vertices)

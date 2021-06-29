@@ -54,7 +54,7 @@ namespace UnitTests
             }
         }
 
-        [Fact]
+        /*[Fact]
         public void OriginalLineBreakingNonIntrusive()
         {
             var elh = new MessageEnglishLayoutHelper(SharedData.Instance.FontLayoutInfo);
@@ -64,6 +64,6 @@ namespace UnitTests
                 parser.ParseTo(message, elh);
                 Assert.Equal(message, elh.Dump());
             }
-        }
+        }*/
     }
 }
