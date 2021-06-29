@@ -359,9 +359,30 @@ namespace ShinDataUtil
 
         static int PicEncode(ReadOnlySpan<string> args)
         {
+            var origin = ShinPictureEncoder.Origin.Bottom;
+            while (args.Length > 0 && args[0].StartsWith("--"))
+            {
+                var opt = args[0];
+                args = args[1..];
+                switch (opt)
+                {
+                    case "--origin":
+                        var v = args[0];
+                        args = args[1..];
+                        if (int.TryParse(v, out var i))
+                            origin = (ShinPictureEncoder.Origin) i;
+                        else if (!Enum.TryParse(v, out origin))
+                            throw new ArgumentException($"Unknown origin: {v}. Allowed values: " +
+                                                        $"{string.Join(", ", Enum.GetValues<ShinPictureEncoder.Origin>())}");
+                        break;
+                    default:
+                        throw new ArgumentException($"Unknown option: {opt}");
+                }
+            }
+            
             if (args.Length < 2)
             {
-                Console.Error.WriteLine("Usage: ShinDataUtil pic-encode [srcpng] [outfile]");
+                Console.Error.WriteLine("Usage: ShinDataUtil pic-encode {--origin [origin]} [srcpng] [outfile]");
                 return 1;
             }
 
@@ -375,7 +396,8 @@ namespace ShinDataUtil
             var rnd = new Random((int)Environment.TickCount64 ^ Environment.ProcessId);
             var pictureId = (uint)rnd.Next();
             
-            ShinPictureEncoder.EncodePicture(outpic, image, image.Width, image.Height, pictureId);
+            
+            ShinPictureEncoder.EncodePicture(outpic, image, image.Width, image.Height, pictureId, origin);
 
             return 0;
         }

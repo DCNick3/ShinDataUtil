@@ -43,7 +43,7 @@ namespace ShinDataUtil.Compression
         }
 
         public static unsafe void EncodePicture(Stream outpic, Image<Rgba32> image, 
-            int effectiveWidth, int effectiveHeight, uint pictureId)
+            int effectiveWidth, int effectiveHeight, uint pictureId, Origin origin)
         {
             Trace.Assert(effectiveWidth > 0 && effectiveHeight > 0);
 
@@ -179,6 +179,20 @@ namespace ShinDataUtil.Compression
             //Console.WriteLine(JsonConvert.SerializeObject(fragments.Select(f => new
             //    {f.X, f.Y, f.Width, f.Height}), Formatting.Indented));
 
+            var (originX, originY) = origin switch
+            {
+                Origin.TopLeft => (0, 0),
+                Origin.Top => (effectiveWidth / 2, 0),
+                Origin.TopRight => (effectiveWidth, 0),
+                Origin.Left => (0, effectiveHeight / 2),
+                Origin.Center => (effectiveWidth / 2, effectiveHeight / 2),
+                Origin.Right => (effectiveWidth, effectiveHeight / 2),
+                Origin.BottomLeft => (0, effectiveHeight),
+                Origin.Bottom => (effectiveWidth / 2, effectiveHeight),
+                Origin.BottomRight => (effectiveWidth, effectiveHeight),
+                _ => throw new ArgumentOutOfRangeException(nameof(origin), origin, null)
+            };
+            
             var header = new PicHeader
             {
                 magic = 0x34434950,
@@ -187,8 +201,8 @@ namespace ShinDataUtil.Compression
                 effectiveHeight = checked((ushort)effectiveHeight),
                 effectiveWidth = checked((ushort)effectiveWidth),
                 entryCount = checked((ushort)fragments.Length),
-                originX = checked((ushort)(effectiveWidth / 2)),
-                originY = checked((ushort)(effectiveHeight)),
+                originX = checked((ushort)originX),
+                originY = checked((ushort)originY),
                 field20 = 1, // this value is set in __most__ pictures, excluding __some__ from /picture/e/ directory
                 pictureId = pictureId
             };
@@ -226,6 +240,19 @@ namespace ShinDataUtil.Compression
             outpic.Write(MemoryMarshal.Cast<PicHeaderFragmentEntry, byte>(fragmentEntriesArray.AsSpan()));
             
             Trace.Assert(dataOffset == outpic.Position);
+        }
+
+        public enum Origin
+        {
+            TopLeft = 1,
+            Top = 2,
+            TopRight = 3,
+            Left = 4,
+            Center = 5,
+            Right = 6,
+            BottomLeft = 7,
+            Bottom = 8,
+            BottomRight = 9
         }
     }
 }

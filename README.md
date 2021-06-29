@@ -45,6 +45,8 @@ Subcommands:
 
 - `scenario-layout [--ignore-logset] fntfile asmfile outasmfile` - transform the specified scenario asm file, doing word wrapping according to mixed English/Japanese rules. Specify `--ignore-logset` to make the layouter not modify messages of `LOGSET`. Useful, as the original game script has a typo there (`r@` vs `@r`).
 
+- `pic-encode {--origin origin} inpng outpic` - encode a png file into PIC, setting the origin as specified by `--origin` (default - `Bottom`)
+
 ## Tests
 
 Tests require the game data (most notably - `data.rom` and `patch.rom`). 

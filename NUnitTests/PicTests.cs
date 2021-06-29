@@ -43,7 +43,7 @@ namespace NUnitTests
 
             using var ms = new MemoryStream();
             
-            ShinPictureEncoder.EncodePicture(ms, image, effectiveWidth, effectiveHeight, 0);
+            ShinPictureEncoder.EncodePicture(ms, image, effectiveWidth, effectiveHeight, 0, ShinPictureEncoder.Origin.Bottom);
 
             var (imageRedec, (effectiveWidth1, effectiveHeight1), _) = ShinPictureDecoder.DecodePicture(ms.GetBuffer().AsSpan()[..(int)ms.Length]);
             
