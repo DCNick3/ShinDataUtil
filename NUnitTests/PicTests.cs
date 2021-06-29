@@ -3,15 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using NUnit.Framework;
 using ShinDataUtil.Compression;
 using ShinDataUtil.Decompression;
-using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
-using Xunit;
 
-namespace UnitTests
+namespace NUnitTests
 {
-    public class Pic
+    public class PicTests
     {
         public class PicTestData : IEnumerable<object[]>
         {
@@ -32,9 +31,10 @@ namespace UnitTests
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
         
-        [Theory]
-        [ClassData(typeof(PicTestData))]
-        void RoundTrip(string romFilename)
+        [Test]
+        [TestCaseSource(typeof(PicTestData))]
+        [Parallelizable(ParallelScope.All)]
+        public void RoundTrip(string romFilename)
         {
             var gameArchive = SharedData.Instance.GameArchive;
 
@@ -47,8 +47,8 @@ namespace UnitTests
 
             var (imageRedec, (effectiveWidth1, effectiveHeight1), _) = ShinPictureDecoder.DecodePicture(ms.GetBuffer().AsSpan()[..(int)ms.Length]);
             
-            Assert.Equal(effectiveWidth1, effectiveWidth);
-            Assert.Equal(effectiveHeight1, effectiveHeight);
+            Assert.AreEqual(effectiveWidth1, effectiveWidth);
+            Assert.AreEqual(effectiveHeight1, effectiveHeight);
 
             for (var j = 0; j < effectiveHeight; j++)
             {

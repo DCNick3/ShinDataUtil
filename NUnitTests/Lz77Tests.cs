@@ -2,13 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using NUnit.Framework;
 using ShinDataUtil.Compression;
 using ShinDataUtil.Decompression;
-using Xunit;
 
-namespace UnitTests
+namespace NUnitTests
 {
-    public class Lz77
+    public class Lz77Tests
     {
         public class Lz77TestData : IEnumerable<object[]>
         {
@@ -34,8 +34,8 @@ namespace UnitTests
         }
 
         
-        [Theory]
-        [ClassData(typeof(Lz77TestData))]
+        [Test]
+        [TestCaseSource(typeof(Lz77TestData))]
         public void EndToEndTest(byte[] data)
         {
             var compressor = new Lz77Compressor(12);

@@ -4,9 +4,8 @@ using Newtonsoft.Json;
 using ShinDataUtil.Common.Scenario;
 using ShinDataUtil.Compression.Scenario;
 using ShinDataUtil.Decompression;
-using ShinDataUtil.Decompression.Scenario;
 
-namespace UnitTests
+namespace NUnitTests
 {
     public class SharedData
     {
