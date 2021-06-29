@@ -44,3 +44,13 @@ Subcommands:
 - `txa-encode srcdir outtxa` - build a TXA from the specified directory (needs an `index.txt` file to function)
 
 - `scenario-layout [--ignore-logset] fntfile asmfile outasmfile` - transform the specified scenario asm file, doing word wrapping according to mixed English/Japanese rules. Specify `--ignore-logset` to make the layouter not modify messages of `LOGSET`. Useful, as the original game script has a typo there (`r@` vs `@r`).
+
+## Tests
+
+Tests require the game data (most notably - `data.rom` and `patch.rom`). 
+
+```bash
+$ sha1sum data.rom patch.rom
+66ce63758e955eed385f8d5c9d90698d5428e369  data.rom
+3dc7e123e23fcbe2058b25ca011849e4aef252c5  patch.rom
+```

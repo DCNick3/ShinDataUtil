@@ -17,14 +17,17 @@
 
   <ItemGroup>
     <Compile Remove="Tests\**" />
+    <Compile Remove="NUnitTests\**" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Remove="Tests\**" />
+    <EmbeddedResource Remove="NUnitTests\**" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="Tests\**" />
+    <None Remove="NUnitTests\**" />
   </ItemGroup>
 
 </Project>
