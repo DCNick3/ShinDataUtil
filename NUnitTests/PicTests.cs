@@ -48,7 +48,7 @@ namespace NUnitTests
             using var ms = new MemoryStream();
             
             ShinPictureEncoder.EncodePicture(ms, imageCropped, effectiveWidth, effectiveHeight, 0,
-                ShinPictureEncoder.Origin.Bottom, new ShinTextureCompress.CompressionConfig
+                ShinPictureEncoder.Origin.Bottom, new ShinTextureCompress.FragmentCompressionConfig
                 {
                     Quantize = true,
                     Dither = true,
@@ -93,7 +93,7 @@ namespace NUnitTests
             using var ms = new MemoryStream();
             
             ShinPictureEncoder.EncodePicture(ms, imageCropped, effectiveWidth, effectiveHeight, 0,
-                ShinPictureEncoder.Origin.Bottom, new ShinTextureCompress.CompressionConfig
+                ShinPictureEncoder.Origin.Bottom, new ShinTextureCompress.FragmentCompressionConfig
                 {
                     Quantize = false,
                     Dither = false

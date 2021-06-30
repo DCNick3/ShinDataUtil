@@ -361,7 +361,7 @@ namespace ShinDataUtil
         static int PicEncode(ReadOnlySpan<string> args)
         {
             var origin = ShinPictureEncoder.Origin.Bottom;
-            var compressionConfig = new ShinTextureCompress.CompressionConfig
+            var compressionConfig = new ShinTextureCompress.FragmentCompressionConfig
             {
                 Quantize = false,
                 Dither = false,
@@ -419,7 +419,7 @@ namespace ShinDataUtil
 
         static int PicEncodeRoundtrip(ReadOnlySpan<string> args)
         {
-            var compressionConfig = new ShinTextureCompress.CompressionConfig
+            var compressionConfig = new ShinTextureCompress.FragmentCompressionConfig
             {
                 Quantize = false,
                 Dither = false,

@@ -43,7 +43,7 @@ namespace ShinDataUtil.Compression
         }
 
         public static unsafe void EncodePicture(Stream outpic, Image<Rgba32> image, 
-            int effectiveWidth, int effectiveHeight, uint pictureId, Origin origin, ShinTextureCompress.CompressionConfig compressionConfig)
+            int effectiveWidth, int effectiveHeight, uint pictureId, Origin origin, ShinTextureCompress.FragmentCompressionConfig fragmentCompressionConfig)
         {
             Trace.Assert(effectiveWidth > 0 && effectiveHeight > 0);
 
@@ -178,6 +178,84 @@ namespace ShinDataUtil.Compression
             
             //Console.WriteLine(JsonConvert.SerializeObject(fragments.Select(f => new
             //    {f.X, f.Y, f.Width, f.Height}), Formatting.Indented));
+            
+            // now we need to do the dedup
+            // notice: dedup works before the quantization, so it might not catch all cases
+            // nah, should be fine
+            uint HashFragment(Rectangle rect)
+            {
+                rect.Deconstruct(out var dx, out var dy, out var width, out var height);
+                if (dx + width > image.Width)
+                    width -= dx + width - image.Width;
+                if (dy + height > image.Height)
+                    height -= dy + height - image.Height;
+                HashSet<Rgba32> values = new();
+
+                uint hash = 5381;
+                
+                for (var j = dy; j < dy + height; j++)
+                for (var i = dx; i < dx + width; i++)
+                {
+                    var v = image[i, j];
+                    if (v.A == 0)
+                        v = Rgba32.Transparent;
+                    hash = ((hash << 5) + hash) + v.PackedValue;
+                }
+
+                return hash;
+            }
+
+            bool CompareFragments(Rectangle a, Rectangle b)
+            {
+                a.Intersect(image.Bounds());
+                b.Intersect(image.Bounds());
+                if (a.Size != b.Size)
+                    return false;
+                
+                for (var j = 0; j < a.Height; j++)
+                {
+                    var rowA = image.GetPixelRowSpan(a.Y + j).Slice(a.X, a.Width);
+                    var rowB = image.GetPixelRowSpan(b.Y + j).Slice(b.X, b.Width);
+                    if (!rowA.SequenceEqual(rowB))
+                        return false;
+                }
+
+                return true;
+            }
+
+            var hashToIndex = new Dictionary<uint, List<int>>();
+            for (var i = 0; i < fragments.Length; i++)
+            {
+                var frag = fragments[i];
+                var hashValue = HashFragment(frag);
+                if (!hashToIndex.TryGetValue(hashValue, out var list))
+                    hashToIndex[hashValue] = list = new List<int>();
+                list.Add(i);
+            }
+
+            var physicalFragments = new List<Rectangle>();
+            //var virtualFragmentsToPhysical = new Dictionary<int, int>();
+            var physicalFragmentsToVirtual = new Dictionary<int, List<int>>();
+            foreach (var (_, v) in hashToIndex)
+            {
+                var hs = v.ToHashSet();
+                while (hs.Count > 0)
+                {
+                    var index = hs.First();
+                    var sameValues = new List<int> {index};
+                    sameValues.AddRange(hs
+                        .Where(i => i != index && CompareFragments(fragments[i], fragments[index])));
+                    foreach (var i in sameValues)
+                        hs.Remove(i);
+
+                    var physicalIndex = physicalFragments.Count;
+                    physicalFragments.Add(fragments[index]);
+                    physicalFragmentsToVirtual[physicalIndex] = sameValues;
+                    //foreach (var i in sameValues)
+                    //    virtualFragmentsToPhysical.Add(i, physicalIndex);
+                }
+            }
+            
 
             var (originX, originY) = origin switch
             {
@@ -211,22 +289,26 @@ namespace ShinDataUtil.Compression
             var currentOffset = dataOffset;
             outpic.Seek(dataOffset, SeekOrigin.Begin);
 
-            var fragmentEntries = new List<PicHeaderFragmentEntry>();
+            var fragmentEntries = new PicHeaderFragmentEntry[fragments.Length];
 
-            foreach (var frag in fragments)
+            foreach (var (i, frag) in physicalFragments.Select((x, i) => (i, x)))
             {
                 var p1 = outpic.Position;
                 var sz = ShinTextureCompress.EncodeImageFragment(outpic, image, frag.X, frag.Y,
-                    0, 0, frag.Width, frag.Height, compressionConfig);
+                    0, 0, frag.Width, frag.Height, fragmentCompressionConfig);
                 var p2 = outpic.Position;
                 Debug.Assert(p2 - p1 == sz);
-                fragmentEntries.Add(new PicHeaderFragmentEntry
+                foreach (var virtualIndex in physicalFragmentsToVirtual[i])
                 {
-                    x = checked((ushort)frag.X),
-                    y = checked((ushort)frag.Y),
-                    offset = checked((uint)currentOffset),
-                    size = checked((uint)sz),
-                });
+                    var virtualRect = fragments[virtualIndex];
+                    fragmentEntries[virtualIndex] = new PicHeaderFragmentEntry
+                    {
+                        x = checked((ushort) virtualRect.X),
+                        y = checked((ushort) virtualRect.Y),
+                        offset = checked((uint) currentOffset),
+                        size = checked((uint) sz),
+                    };
+                }
                 currentOffset += sz;
             }
             
