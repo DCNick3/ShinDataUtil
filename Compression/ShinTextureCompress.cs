@@ -4,12 +4,15 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks.Dataflow;
 using FastPngEncoderSharp;
 using ShinDataUtil.Common;
 using ShinDataUtil.Decompression;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using SixLabors.ImageSharp.Processing.Processors.Quantization;
 using SixLabors.Primitives;
 
 namespace ShinDataUtil.Compression
@@ -154,12 +157,62 @@ namespace ShinDataUtil.Compression
             return values.Count <= 256;
         }
 
+        public class CompressionConfig
+        {
+            public bool Quantize { get; set; }
+            public bool Dither { get; set; }
+            public bool LosslessAlpha { get; set; }
+        }
+        
         public static unsafe int EncodeImageFragment(Stream outfrag, Image<Rgba32> image,
             int dx, int dy,
             int offsetX, int offsetY,
-            int width, int height
+            int width, int height,
+            CompressionConfig compressionConfig
         )
         {
+            if (compressionConfig.Quantize)
+            {
+                // copy the image region ignoring alpha quantize it, restore alpha
+                var subimg = new Image<Rgba32>(width, height);
+                for (var j = 0; j < height; j++)
+                {
+                    var srcRow = image.GetPixelRowSpan(Math.Min(dy + j, image.Height - 1))[dx..];
+                    var row = subimg.GetPixelRowSpan(j);
+                    for (var i = 0; i < width; i++)
+                    {
+                        var v = srcRow[Math.Min(i, srcRow.Length - 1)];
+                        if (v.A == 0)
+                            v = Rgba32.Transparent;
+                        if (compressionConfig.LosslessAlpha)
+                            v.A = 255;
+
+                        row[i] = v;
+                    }
+                }
+
+                subimg.Mutate(o =>
+                {
+                    o.Quantize(new WuQuantizer(compressionConfig.Dither ? KnownDiffusers.FloydSteinberg : null, 256));
+                });
+                
+                for (var j = 0; j < height; j++)
+                {
+                    var srcRow = image.GetPixelRowSpan(Math.Min(dy + j, image.Height - 1))[dx..];
+                    var row = subimg.GetPixelRowSpan(j);
+                    for (var i = 0; i < width; i++)
+                    {
+                        var v = srcRow[Math.Min(i, srcRow.Length - 1)];
+                        if (compressionConfig.LosslessAlpha)
+                            row[i].A = v.A;
+                    }
+                }
+                
+                dx = 0;
+                dy = 0;
+                image = subimg;
+            }
+            
             var differentialStride = (width * 4 + 0xf) & 0x7ffffff0;
             var dictionaryStride = (width + 3) & 0x7ffffffc;
 
@@ -182,6 +235,8 @@ namespace ShinDataUtil.Compression
                 useSeparateAlpha = false; // don't care, but C# does
             }
 
+            if (compressionConfig.Quantize)
+                Trace.Assert(!useDifferentialEncoding);
 
             int decompressedSize;
             if (useDifferentialEncoding)

@@ -45,7 +45,9 @@ Subcommands:
 
 - `scenario-layout [--ignore-logset] fntfile asmfile outasmfile` - transform the specified scenario asm file, doing word wrapping according to mixed English/Japanese rules. Specify `--ignore-logset` to make the layouter not modify messages of `LOGSET`. Useful, as the original game script has a typo there (`r@` vs `@r`).
 
-- `pic-encode {--origin origin} inpng outpic` - encode a png file into PIC, setting the origin as specified by `--origin` (default - `Bottom`)
+- `pic-encode {--origin origin} {--quantize} {--dither} {--lossless-alpha} inpng outpic` - encode a png file into PIC, setting the origin as specified by `--origin` (default - `Bottom`). Optionally --quantize the colors to 256 using Wu's algorithm to allow to use more effective dict encoding. Add --dither to also apply dithering, improving the overall resulting look, but increasing the file size slightly. You can also specify --lossless-alpha not to apply dithering to alpha channel. This will reduce the stress on ditherer and will increase the overall number of colors, but, obviously, will increase file size.
+
+- `pic-encode-roundtrip {--quantize} {--dither} {--lossless-alpha} inpng outpng` - encode a png file into PIC and decode it back. Allows to test the results of lossy compression. Also prints encoded size and Mean Square Error between the original and encoded image.
 
 ## Tests
 

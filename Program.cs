@@ -17,6 +17,7 @@ using ShinDataUtil.Decompression.Scenario;
 using ShinDataUtil.Scenario;
 using ShinDataUtil.Util;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -360,6 +361,12 @@ namespace ShinDataUtil
         static int PicEncode(ReadOnlySpan<string> args)
         {
             var origin = ShinPictureEncoder.Origin.Bottom;
+            var compressionConfig = new ShinTextureCompress.CompressionConfig
+            {
+                Quantize = false,
+                Dither = false,
+                LosslessAlpha = false
+            };
             while (args.Length > 0 && args[0].StartsWith("--"))
             {
                 var opt = args[0];
@@ -374,6 +381,15 @@ namespace ShinDataUtil
                         else if (!Enum.TryParse(v, out origin))
                             throw new ArgumentException($"Unknown origin: {v}. Allowed values: " +
                                                         $"{string.Join(", ", Enum.GetValues<ShinPictureEncoder.Origin>())}");
+                        break;
+                    case "--quantize":
+                        compressionConfig.Quantize = true;
+                        break;
+                    case "--dither":
+                        compressionConfig.Dither = true;
+                        break;
+                    case "--lossless-alpha":
+                        compressionConfig.LosslessAlpha = true;
                         break;
                     default:
                         throw new ArgumentException($"Unknown option: {opt}");
@@ -396,9 +412,76 @@ namespace ShinDataUtil
             var rnd = new Random((int)Environment.TickCount64 ^ Environment.ProcessId);
             var pictureId = (uint)rnd.Next();
             
-            
-            ShinPictureEncoder.EncodePicture(outpic, image, image.Width, image.Height, pictureId, origin);
+            ShinPictureEncoder.EncodePicture(outpic, image, image.Width, image.Height, pictureId, origin, compressionConfig);
 
+            return 0;
+        }
+
+        static int PicEncodeRoundtrip(ReadOnlySpan<string> args)
+        {
+            var compressionConfig = new ShinTextureCompress.CompressionConfig
+            {
+                Quantize = false,
+                Dither = false,
+                LosslessAlpha = false
+            };
+            while (args.Length > 0 && args[0].StartsWith("--"))
+            {
+                var opt = args[0];
+                args = args[1..];
+                switch (opt)
+                {
+                    case "--quantize":
+                        compressionConfig.Quantize = true;
+                        break;
+                    case "--dither":
+                        compressionConfig.Dither = true;
+                        break;
+                    case "--lossless-alpha":
+                        compressionConfig.LosslessAlpha = true;
+                        break;
+                    default:
+                        throw new ArgumentException($"Unknown option: {opt}");
+                }
+            }
+            
+            if (args.Length < 2)
+            {
+                Console.Error.WriteLine("Usage: ShinDataUtil pic-encode {--origin [origin]} [srcpng] [outfile]");
+                return 1;
+            }
+
+            var srcpng = args[0];
+            var outpng = args[1];
+
+            using var outpic = new MemoryStream();
+            using var fs = File.OpenRead(srcpng);
+            using var image = Image.Load<Rgba32>(fs, new PngDecoder());
+
+            ShinPictureEncoder.EncodePicture(outpic, image, image.Width, image.Height, 0, 
+                ShinPictureEncoder.Origin.Bottom, compressionConfig);
+            
+            
+            var (decodedImage, size, _) = ShinPictureDecoder.DecodePicture(outpic.GetBuffer()[..(int)outpic.Length]);
+
+            var (effectiveWidth, effectiveHeight) = size;
+            
+            var mse = 0.0;
+            for (var j = 0; j < effectiveHeight; j++)
+            {
+                var span1 = image.GetPixelRowSpan(j)[..effectiveWidth];
+                var span2 = decodedImage.GetPixelRowSpan(j)[..effectiveWidth];
+                if (span1.SequenceEqual(span2))
+                    continue;
+                for (var i = 0; i < effectiveWidth; i++)
+                    mse += (span1[i].ToVector4() - span2[i].ToVector4()).LengthSquared();
+            }
+            
+            Console.WriteLine($"Encoded size: {BytesToString(outpic.Length)} ({outpic.Length} bytes)");
+            Console.WriteLine($"MSE: {mse / effectiveHeight / effectiveWidth}");
+            
+            FastPngEncoder.WritePngToFile(outpng, decodedImage, size);
+            
             return 0;
         }
 
@@ -744,6 +827,7 @@ namespace ShinDataUtil
             actions.AddAction("lz77-test", Lz77Test);
             actions.AddAction("txa-encode", TxaEncode);
             actions.AddAction("pic-encode", PicEncode);
+            actions.AddAction("pic-encode-roundtrip", PicEncodeRoundtrip);
             actions.AddSingleFileProcessingAction("font-extract", "fnt", FontExtract);
             actions.AddSingleFileProcessingAction("txa-extract", "txa", TxaExtract);
             actions.AddSingleFileProcessingAction("sysse-extract", "sysse", SysseExtract);

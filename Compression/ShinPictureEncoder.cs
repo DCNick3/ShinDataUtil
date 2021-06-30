@@ -43,7 +43,7 @@ namespace ShinDataUtil.Compression
         }
 
         public static unsafe void EncodePicture(Stream outpic, Image<Rgba32> image, 
-            int effectiveWidth, int effectiveHeight, uint pictureId, Origin origin)
+            int effectiveWidth, int effectiveHeight, uint pictureId, Origin origin, ShinTextureCompress.CompressionConfig compressionConfig)
         {
             Trace.Assert(effectiveWidth > 0 && effectiveHeight > 0);
 
@@ -217,7 +217,7 @@ namespace ShinDataUtil.Compression
             {
                 var p1 = outpic.Position;
                 var sz = ShinTextureCompress.EncodeImageFragment(outpic, image, frag.X, frag.Y,
-                    0, 0, frag.Width, frag.Height);
+                    0, 0, frag.Width, frag.Height, compressionConfig);
                 var p2 = outpic.Position;
                 Debug.Assert(p2 - p1 == sz);
                 fragmentEntries.Add(new PicHeaderFragmentEntry

@@ -31,6 +31,52 @@ namespace NUnitTests
 
             IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
         }
+
+        [Test]
+        [Parallelizable(ParallelScope.All)]
+        [TestCase("/picture/e/001a.pic")]
+        [TestCase("/picture/e/002a.pic")]
+        [TestCase("/picture/e/006.pic")]
+        [TestCase("/picture/a/airplane.pic")]
+        [TestCase("/picture/a/airplane_s.pic")]
+        public void RoundTripLossy(string romFilename)
+        {
+            var gameArchive = SharedData.Instance.GameArchive;
+
+            using var file = gameArchive.OpenFile(romFilename);
+            var (image, (effectiveWidth, effectiveHeight), _) = ShinPictureDecoder.DecodePicture(file.Data.Span);
+
+            var imageCropped = image.Clone();
+            imageCropped.Mutate(o => o.Crop(effectiveWidth, effectiveHeight));
+            
+            using var ms = new MemoryStream();
+            
+            ShinPictureEncoder.EncodePicture(ms, imageCropped, effectiveWidth, effectiveHeight, 0,
+                ShinPictureEncoder.Origin.Bottom, new ShinTextureCompress.CompressionConfig
+                {
+                    Quantize = true,
+                    Dither = true
+                });
+
+            var (imageRedec, (effectiveWidth1, effectiveHeight1), _) = ShinPictureDecoder.DecodePicture(ms.GetBuffer().AsSpan()[..(int)ms.Length]);
+            
+            Assert.AreEqual(effectiveWidth1, effectiveWidth);
+            Assert.AreEqual(effectiveHeight1, effectiveHeight);
+
+            var mse = 0.0;
+            for (var j = 0; j < effectiveHeight; j++)
+            {
+                var span1 = imageCropped.GetPixelRowSpan(j)[..effectiveWidth];
+                var span2 = imageRedec.GetPixelRowSpan(j)[..effectiveWidth];
+                if (span1.SequenceEqual(span2))
+                    continue;
+                for (var i = 0; i < effectiveWidth; i++)
+                    mse += (span1[i].ToVector4() - span2[i].ToVector4()).LengthSquared();
+            }
+            
+            // MSE not greater than this value. Allows the error to be up to 1 per each pixel per channel
+            Assert.Less(mse, effectiveWidth * effectiveHeight * 4);
+        }
         
         [Test]
         [TestCaseSource(typeof(PicTestData))]
@@ -47,7 +93,12 @@ namespace NUnitTests
             
             using var ms = new MemoryStream();
             
-            ShinPictureEncoder.EncodePicture(ms, imageCropped, effectiveWidth, effectiveHeight, 0, ShinPictureEncoder.Origin.Bottom);
+            ShinPictureEncoder.EncodePicture(ms, imageCropped, effectiveWidth, effectiveHeight, 0,
+                ShinPictureEncoder.Origin.Bottom, new ShinTextureCompress.CompressionConfig
+                {
+                    Quantize = false,
+                    Dither = false
+                });
 
             var (imageRedec, (effectiveWidth1, effectiveHeight1), _) = ShinPictureDecoder.DecodePicture(ms.GetBuffer().AsSpan()[..(int)ms.Length]);
             
