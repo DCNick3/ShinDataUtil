@@ -34,11 +34,7 @@ namespace NUnitTests
 
         [Test]
         [Parallelizable(ParallelScope.All)]
-        [TestCase("/picture/e/001a.pic")]
-        [TestCase("/picture/e/002a.pic")]
-        [TestCase("/picture/e/006.pic")]
-        [TestCase("/picture/a/airplane.pic")]
-        [TestCase("/picture/a/airplane_s.pic")]
+        [TestCaseSource(typeof(PicTestData))]
         public void RoundTripLossy(string romFilename)
         {
             var gameArchive = SharedData.Instance.GameArchive;
@@ -55,7 +51,8 @@ namespace NUnitTests
                 ShinPictureEncoder.Origin.Bottom, new ShinTextureCompress.CompressionConfig
                 {
                     Quantize = true,
-                    Dither = true
+                    Dither = true,
+                    LosslessAlpha = true
                 });
 
             var (imageRedec, (effectiveWidth1, effectiveHeight1), _) = ShinPictureDecoder.DecodePicture(ms.GetBuffer().AsSpan()[..(int)ms.Length]);
@@ -73,9 +70,11 @@ namespace NUnitTests
                 for (var i = 0; i < effectiveWidth; i++)
                     mse += (span1[i].ToVector4() - span2[i].ToVector4()).LengthSquared();
             }
+
+            mse /= effectiveWidth * effectiveHeight;
             
             // MSE not greater than this value. Allows the error to be up to 1 per each pixel per channel
-            Assert.Less(mse, effectiveWidth * effectiveHeight * 4);
+            Assert.Less(mse, 0.0003 /* 3 * 10 ^ -4, should be quite conservative */);
         }
         
         [Test]
