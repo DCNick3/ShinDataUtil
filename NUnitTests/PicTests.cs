@@ -7,6 +7,7 @@ using NUnit.Framework;
 using ShinDataUtil.Compression;
 using ShinDataUtil.Decompression;
 using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Processing;
 
 namespace NUnitTests
 {
@@ -41,9 +42,12 @@ namespace NUnitTests
             using var file = gameArchive.OpenFile(romFilename);
             var (image, (effectiveWidth, effectiveHeight), _) = ShinPictureDecoder.DecodePicture(file.Data.Span);
 
+            var imageCropped = image.Clone();
+            imageCropped.Mutate(o => o.Crop(effectiveWidth, effectiveHeight));
+            
             using var ms = new MemoryStream();
             
-            ShinPictureEncoder.EncodePicture(ms, image, effectiveWidth, effectiveHeight, 0, ShinPictureEncoder.Origin.Bottom);
+            ShinPictureEncoder.EncodePicture(ms, imageCropped, effectiveWidth, effectiveHeight, 0, ShinPictureEncoder.Origin.Bottom);
 
             var (imageRedec, (effectiveWidth1, effectiveHeight1), _) = ShinPictureDecoder.DecodePicture(ms.GetBuffer().AsSpan()[..(int)ms.Length]);
             
@@ -52,9 +56,13 @@ namespace NUnitTests
 
             for (var j = 0; j < effectiveHeight; j++)
             {
-                var span1 = image.GetPixelRowSpan(j)[..effectiveWidth];
+                var span1 = imageCropped.GetPixelRowSpan(j)[..effectiveWidth];
                 var span2 = imageRedec.GetPixelRowSpan(j)[..effectiveWidth];
-                Assert.True(span1.SequenceEqual(span2), $"Expected equality of the round-trip decoded images at row {j}");
+                if (span1.SequenceEqual(span2))
+                    continue;
+                for (var i = 0; i < effectiveWidth; i++)
+                    Assert.AreEqual(span2[i], span1[i],
+                        $"Expected equality of the round-trip decoded images at row {j}, column {i}");
             }
         }
     }

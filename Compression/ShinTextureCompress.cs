@@ -27,11 +27,22 @@ namespace ShinDataUtil.Compression
             Trace.Assert(output.Length == stride * height);
             Trace.Assert(width <= stride);
             
+            // handle out-of-bounds source by repeating the value at the border
+            var effectiveWidth = width;
+            var effectiveHeight = height;
+            if (dx + width > source.Width)
+                effectiveWidth -= dx + width - source.Width;
+            if (dy + height > source.Height)
+                effectiveHeight -= dy + height - source.Height;
+
             for (var j = 0; j < height; j++)
             {
                 for (var i = 0; i < width; i++)
                 {
-                    var v = source[i + dx, j + dy];
+                    var x = dx + Math.Min(i, effectiveWidth - 1);
+                    var y = dy + Math.Min(j, effectiveHeight - 1);
+
+                    var v = source[x, y];
                     if (outputAlpha.Length > 0)
                         v.A = 255;
                     if (!dictIndices.TryGetValue(v, out var val))
@@ -43,7 +54,7 @@ namespace ShinDataUtil.Compression
 
                     output[i] = val;
                     if (outputAlpha.Length != 0)
-                        outputAlpha[i] = source[i + dx, j + dy].A;
+                        outputAlpha[i] = source[x, y].A;
                 }
                 
                 output = output[stride..];
@@ -57,21 +68,45 @@ namespace ShinDataUtil.Compression
         public static void EncodeDifferential(Image<Rgba32> source, int dx, int dy, int width, int height,
             Span<byte> data, int stride)
         {
+            // handle out-of-bounds source by repeating the value at the border
+            var effectiveWidth = width;
+            var effectiveHeight = height;
+            if (dx + width > source.Width)
+                effectiveWidth -= dx + width - source.Width;
+            if (dy + height > source.Height)
+                effectiveHeight -= dy + height - source.Height;
             if (height > 0)
             {
-                var firstRow = MemoryMarshal.Cast<Rgba32, byte>(source.GetPixelRowSpan(dy).Slice(dx, width));
-                firstRow.CopyTo(data[..(width * 4)]);
+                var firstRow = source.GetPixelRowSpan(dy).Slice(dx, effectiveWidth);
+                firstRow.CopyTo(MemoryMarshal.Cast<byte, Rgba32>(data)[..(effectiveWidth * 4)]);
+                for (var i = effectiveWidth; i < width; i++)
+                    // repeat the same stuff
+                    MemoryMarshal.Cast<byte, Rgba32>(data)[i] = source[dx + effectiveWidth - 1, dy];
+                data[(width * 4)..stride].Fill(0);
                 data = data[stride..];
 
-                for (int j = 1; j < height; j++)
+                for (var j = 1; j < effectiveHeight; j++)
                 {
                     var previousRow = MemoryMarshal.Cast<Rgba32, byte>(source.GetPixelRowSpan(dy + j - 1)[dx..]);
                     var row = MemoryMarshal.Cast<Rgba32, byte>(source.GetPixelRowSpan(dy + j)[dx..]);
-                    for (var i = 0; i < width * 4; i++)
+                    for (var i = 0; i < effectiveWidth * 4; i++)
                     {
                         data[i] = (byte) (row[i] - previousRow[i]);
                     }
 
+                    for (var i = effectiveWidth * 4; i < width * 4; i++)
+                    {
+                        data[i] = (byte) (row[(effectiveWidth - 1) * 4 + i % 4] - previousRow[(effectiveWidth - 1) * 4 + i % 4]);
+                    }
+
+                    data[(width * 4)..stride].Fill(0);
+                    data = data[stride..];
+                }
+
+                for (var j = effectiveHeight; j < height; j++)
+                {
+                    // keep it the same
+                    data[..stride].Fill(0);
                     data = data[stride..];
                 }
             }
@@ -81,9 +116,16 @@ namespace ShinDataUtil.Compression
 
         public static bool EligibleForDictCompression(Image<Rgba32> image, int dx, int dy, int width, int height)
         {
+            // handle out-of-bounds source by repeating the value at the border
+            var effectiveWidth = width;
+            var effectiveHeight = height;
+            if (dx + width > image.Width)
+                effectiveWidth -= dx + width - image.Width;
+            if (dy + height > image.Height)
+                effectiveHeight -= dy + height - image.Height;
             HashSet<Rgba32> values = new();
-            for (var j = dy; j < dy + height; j++)
-            for (var i = dx; i < dx + width; i++)
+            for (var j = dy; j < dy + effectiveHeight; j++)
+            for (var i = dx; i < dx + effectiveWidth; i++)
             {
                 values.Add(image[i, j]);
             }
@@ -93,9 +135,16 @@ namespace ShinDataUtil.Compression
         
         public static bool EligibleForDictCompressionWithSeparateAlpha(Image<Rgba32> image, int dx, int dy, int width, int height)
         {
+            // handle out-of-bounds source by repeating the value at the border
+            var effectiveWidth = width;
+            var effectiveHeight = height;
+            if (dx + width > image.Width)
+                effectiveWidth -= dx + width - image.Width;
+            if (dy + height > image.Height)
+                effectiveHeight -= dy + height - image.Height;
             HashSet<Rgba32> values = new();
-            for (var j = dy; j < dy + height; j++)
-            for (var i = dx; i < dx + width; i++)
+            for (var j = dy; j < dy + effectiveHeight; j++)
+            for (var i = dx; i < dx + effectiveWidth; i++)
             {
                 var v = image[i, j];
                 v.A = 0;
