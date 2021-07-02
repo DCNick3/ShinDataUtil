@@ -42,7 +42,7 @@ namespace NUnitTests
             var (compressed, compressedSize) = compressor.Compress(data);
 
             var decompressed = new byte[data.Length];
-            Lz77Decompressor.Decompress(decompressed, compressed[..compressedSize], 12);
+            Lz77Decompressor.Decompress(decompressed, compressed.AsSpan()[..compressedSize], 12);
 
             Assert.True(decompressed.SequenceEqual(data));
         }
