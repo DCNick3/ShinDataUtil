@@ -176,7 +176,7 @@ namespace ShinDataUtil.Decompression.Scenario
             for (var i = 0; i < seenAddrMask.Length; i++)
                 if (!seenAddrMask[i])
                     nonSeenAddresses.Add(i + initialOffset);
-                
+            
             Trace.Assert(nonSeenAddresses.Count < 16);
 
             return reader._disassemblyViewBuilder.Build();
@@ -294,13 +294,15 @@ namespace ShinDataUtil.Decompression.Scenario
         private (bool, Opcode, dynamic[]) FeedOneInstruction()
         {
             var opcode = (Opcode)FeedByte();
-            //Console.WriteLine($"D{_offset-1:x6} {opcode}");
+            Console.WriteLine($"0x{_offset-1:x6} {opcode}");
             
             var encoding = OpcodeDefinitions.GetEncoding(opcode);
             var data = encoding.Select(FeedElement).ToArray();
             var j = OpcodeDefinitions.IsJump(opcode);
             if (j && !OpcodeDefinitions.IsUnconditionalJump(opcode))
                 _interestingOffsets.Add(_offset);
+            
+            //Console.WriteLine($"0x{_offset-1:x6} {opcode} {string.Join(", ", data)}");
             
             /* various instruction-specific fixups */
             

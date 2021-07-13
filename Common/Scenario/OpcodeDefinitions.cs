@@ -33,7 +33,8 @@ namespace ShinDataUtil.Scenario
         }
 
         private const string Encodings = @"
-EXIT=b,n!
+EXIT=n!
+
 bo=bo
 exp=a,rpn
 jc=b,n,n,j
@@ -41,64 +42,53 @@ j=j!
 call=j
 ret=!
 jt=n,jj
+callt=n,jj
 rnd=a,n,n
 push=nn
 pop=aa
 
-SGET=a,n
-SSET=n,n
-WAIT=b,n
-MSGINIT=n
-MSGSET=mi,b,n,lstr
-MSGWAIT=n
-MSGSIGNAL=
-MSGSYNC=n,n
-MSGCLOSE=b
-MSGFACE=b
-LOGSET=lstr
-SELECT=s,s,a,n,str,strstr
-WIPE=n,n,n,bmn
-WIPEWAIT=
-BGMPLAY=n,n,n,n
-BGMSTOP=n
-BGMVOL=n,n
-BGMWAIT=n
-BGMSYNC=n
-SEPLAY=n,n,n,n,n,n,n
-SESTOP=n,n
-SESTOPALL=n
-SEVOL=n,n,n
-SEPAN=n,n,n
-SEWAIT=n,n
-VOICEPLAY=str,n,n
-VOICEWAIT=n
-SAVEINFO=n,str
-AUTOSAVE=
-EVBEGIN=n
-EVEND=
-TROPHY=n
-LAYERLOAD=n,n,n,bmn
-LAYERUNLOAD=n,n
-LAYERCTRL=n,n,bmn
-LAYERWAIT=n,nn
-LAYERBACK=n
-LAYERSELECT=n,n
-MOVIEWAIT=n,n
-TIPSGET=nn
-CHARSELECT=s,a,n
-OTSUGET=n
-CHART=b,nn
-SNRSEL=n
-KAKERA=
-KAKERAGET=n,nn
-QUIZ=a,n,n,n
-FAKESELECT=
-UNLOCK=b,nn
+
+OPCODE79=j,nn
+OPCODE80=!
+
+OPCODE83=a,n,n
+
+OPCODE128=s,n
+OPCODE129=n,n
+OPCODE130=b,n
+OPCODE131=n
+OPCODE132=i,lstr
+OPCODE133=n
+OPCODE134=
+OPCODE135=b
+OPCODE136=s,s,s,n,str,strstr
+OPCODE137=n,n,n,bmn
+OPCODE138=
+OPCODE144=n,n,n,n
+OPCODE145=n
+OPCODE146=n,n
+OPCODE149=n,n,n,n,n,n,n
+OPCODE150=n,n
+OPCODE151=n
+OPCODE152=n,n,n
+OPCODE154=n,n
+OPCODE155=n,n,n,n,n
+OPCODE156=str,n,n
+OPCODE158=n
+OPCODE195=n,n,bmn
+OPCODE193=n,n,n,bmn
+OPCODE194=n,n
+OPCODE196=n,nn
+OPCODE197=n
+OPCODE198=n,n
+OPCODE199=n,n
+OPCODE224=s,n,n,n,n
+OPCODE225=n,n
 DEBUGOUT=str,nn";
         
         private static readonly HashSet<Opcode> NeedsStringFixup = new HashSet<Opcode>
         {
-            Opcode.MSGSET, Opcode.LOGSET, Opcode.SELECT, Opcode.SAVEINFO
+            //Opcode.MSGSET, Opcode.LOGSET, Opcode.SELECT, Opcode.SAVEINFO
         };
 
         private static readonly OpcodeEncodingElement[][] EncodingElements = new OpcodeEncodingElement[256][];

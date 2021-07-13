@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using ShinDataUtil.Common.Scenario;
 
@@ -8,7 +9,7 @@ namespace ShinDataUtil.Scenario
         public BinaryOperationArgument(byte type, ushort destinationAddress, NumberSpec argument2)
         {
             type = (byte) (type & 0x7f);
-            Trace.Assert(type <= 11);
+            Trace.Assert(Enum.IsDefined(typeof(Operation), type));
             Type = (Operation) type;
             DestinationAddress = destinationAddress;
             Argument1 = NumberSpec.FromAddress(destinationAddress);
@@ -70,7 +71,10 @@ namespace ShinDataUtil.Scenario
             BitwiseOr = 8,
             BitwiseXor = 9,
             LeftShift = 10,
-            RightShift = 11
+            RightShift = 11,
+            
+            SetBit = 15,
+            ResetBit = 16,
             /* others are a pain to figure out */
         }
     }

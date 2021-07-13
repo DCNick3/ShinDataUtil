@@ -9,6 +9,9 @@ namespace ShinDataUtil.Scenario
         
         // Operations (do not yield to game loop)
         
+        
+        OPCODE64 = 64,
+        
         /// <summary>
         /// Binary operation (two arguments...)
         /// </summary>
@@ -37,6 +40,10 @@ namespace ShinDataUtil.Scenario
         /// Follow a jump table
         /// </summary>
         jt = 74,
+        /// <summary>
+        /// Call using a jump table
+        /// </summary>
+        callt = 75,
         
         /// <summary>
         /// Generate a pseudo-random number. Destination address is in the first argument. Second and third give boundaries.
@@ -52,61 +59,42 @@ namespace ShinDataUtil.Scenario
         /// </summary>
         pop = 78,
         
-        // Commands, yield to game loop
-        SGET = 129,              // doc'ed
-        SSET = 130,              // doc'ed
-        WAIT = 131,              // doc'ed
-        MSGINIT = 133,           // doc'ed
-        MSGSET = 134,            // doc'ed
-        MSGWAIT = 135,           // doc'ed
-        MSGSIGNAL = 136,         // doc'ed
-        MSGSYNC = 137,           // not used
-        MSGCLOSE = 138,          // doc'ed
-        MSGFACE = 139,           // not used
-        LOGSET = 140,
-        SELECT = 141,            // doc'ed
-        WIPE = 142,              
-        WIPEWAIT = 143,          
-        BGMPLAY = 144,           // doc'ed
-        BGMSTOP = 145,           // doc'ed
-        BGMVOL = 146,            // doc'ed
-        BGMWAIT = 147,           // doc'ed
-        BGMSYNC = 148,           // doc'ed
-        SEPLAY = 149,            // doc'ed
-        SESTOP = 150,            // doc'ed
-        SESTOPALL = 151,         // doc'ed
-        SEVOL = 152,             // doc'ed
-        SEPAN = 153,             // doc'ed
-        SEWAIT = 154,            // doc'ed
-        SEONCE = 155,            // no used
-        VOICEPLAY = 156,         // doc'ed
-        VOICESTOP = 157,         // doc'ed
-        VOICEWAIT = 158,         // doc'ed
-        SAVEINFO = 160,          // doc'ed
-        AUTOSAVE = 161,          
-        EVBEGIN = 162,           // doc'ed (needs more research and info)
-        EVEND = 163,             // doc'ed
-        TROPHY = 176,            // doc'ed
-        LAYERINIT = 192,         // not used
-        LAYERLOAD = 193,         // doc'ed
-        LAYERUNLOAD = 194,       // doc'ed
-        LAYERCTRL = 195,         // doc'ed
-        LAYERWAIT = 196,         // doc'ed
-        LAYERBACK = 197,         // doc'ed
-        LAYERSWAP = 198,         // not used
-        LAYERSELECT = 199,       // doc'ed
-        MOVIEWAIT = 200,         // doc'ed
-        FEELICON = 201,          // not used
-        TIPSGET = 208,
-        CHARSELECT = 209,
-        OTSUGET = 210,
-        CHART = 211,
-        SNRSEL = 212,            // doc'ed
-        KAKERA = 213,            // doc'ed
-        KAKERAGET = 214,
-        QUIZ = 215,              // doc'ed
-        FAKESELECT = 216,        // doc'ed
-        UNLOCK = 217,            // has something to do with quizes...
+        OPCODE79 = 79,
+        
+        OPCODE80 = 80,
+        OPCODE83 = 83,
+        
+        OPCODE128 = 128,
+        OPCODE129 = 129,
+        OPCODE130 = 130,
+        OPCODE131 = 131,
+        OPCODE132 = 132,
+        OPCODE133 = 133,
+        OPCODE134 = 134,
+        OPCODE135 = 135,
+        OPCODE136 = 136,
+        OPCODE137 = 137,
+        OPCODE138 = 138,
+        OPCODE144 = 144,
+        OPCODE145 = 145,
+        OPCODE146 = 146,
+        OPCODE149 = 149,
+        OPCODE150 = 150,
+        OPCODE151 = 151,
+        OPCODE152 = 152,
+        OPCODE154 = 154,
+        OPCODE155 = 155,
+        OPCODE156 = 156,
+        OPCODE158 = 158,
+        OPCODE193 = 193,
+        OPCODE194 = 194,
+        OPCODE195 = 195,
+        OPCODE196 = 196,
+        OPCODE197 = 197,
+        OPCODE198 = 198,
+        OPCODE199 = 199,
+        OPCODE224 = 224,
+        OPCODE225 = 225,
         DEBUGOUT = 255           // doc'ed
     }
 }
