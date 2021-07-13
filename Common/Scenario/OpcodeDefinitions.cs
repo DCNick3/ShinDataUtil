@@ -27,64 +27,72 @@ namespace ShinDataUtil.Scenario
                 "bmn" => OpcodeEncodingElement.BitmappedNumberArguments,
                 "rpn" => OpcodeEncodingElement.PostfixNotationExpression, 
                 "mi" => OpcodeEncodingElement.MessageId,
+                "uo" => OpcodeEncodingElement.UnaryOperationArgument,
                 "bo" => OpcodeEncodingElement.BinaryOperationArgument,
                 _ => throw new ArgumentException()
             };
         }
 
-        private const string Encodings = @"
-EXIT=n!
+        private static string? GetOpcodeEncodingString(Opcode opcode)
+        {
+            return opcode switch
+            {
+                Opcode.EXIT => "n!",
 
-bo=bo
-exp=a,rpn
-jc=b,n,n,j
-j=j!
-call=j
-ret=!
-jt=n,jj
-callt=n,jj
-rnd=a,n,n
-push=nn
-pop=aa
+                Opcode.uo => "uo",
+                Opcode.bo => "bo",
+                Opcode.exp => "a,rpn",
+                Opcode.jc => "b,n,n,j",
+                Opcode.j => "j!",
+                Opcode.call => "j",
+                Opcode.ret => "!",
+                Opcode.jt => "n,jj",
+                Opcode.callt => "n,jj",
+                Opcode.rnd => "a,n,n",
+                Opcode.push => "nn",
+                Opcode.pop => "aa",
 
 
-OPCODE79=j,nn
-OPCODE80=!
+                Opcode.OPCODE79 => "j,nn",
+                Opcode.OPCODE80 => "!",
 
-OPCODE83=a,n,n
+                Opcode.OPCODE83 => "a,n,n",
 
-OPCODE128=s,n
-OPCODE129=n,n
-OPCODE130=b,n
-OPCODE131=n
-OPCODE132=i,lstr
-OPCODE133=n
-OPCODE134=
-OPCODE135=b
-OPCODE136=s,s,s,n,str,strstr
-OPCODE137=n,n,n,bmn
-OPCODE138=
-OPCODE144=n,n,n,n
-OPCODE145=n
-OPCODE146=n,n
-OPCODE149=n,n,n,n,n,n,n
-OPCODE150=n,n
-OPCODE151=n
-OPCODE152=n,n,n
-OPCODE154=n,n
-OPCODE155=n,n,n,n,n
-OPCODE156=str,n,n
-OPCODE158=n
-OPCODE195=n,n,bmn
-OPCODE193=n,n,n,bmn
-OPCODE194=n,n
-OPCODE196=n,nn
-OPCODE197=n
-OPCODE198=n,n
-OPCODE199=n,n
-OPCODE224=s,n,n,n,n
-OPCODE225=n,n
-DEBUGOUT=str,nn";
+                Opcode.OPCODE128 => "s,n",
+                Opcode.OPCODE129 => "n,n",
+                Opcode.OPCODE130 => "b,n",
+                Opcode.OPCODE131 => "n",
+                Opcode.OPCODE132 => "i,lstr",
+                Opcode.OPCODE133 => "n",
+                Opcode.OPCODE134 => "",
+                Opcode.OPCODE135 => "b",
+                Opcode.OPCODE136 => "s,s,s,n,str,strstr",
+                Opcode.OPCODE137 => "n,n,n,bmn",
+                Opcode.OPCODE138 => "",
+                Opcode.OPCODE144 => "n,n,n,n",
+                Opcode.OPCODE145 => "n",
+                Opcode.OPCODE146 => "n,n",
+                Opcode.OPCODE149 => "n,n,n,n,n,n,n",
+                Opcode.OPCODE150 => "n,n",
+                Opcode.OPCODE151 => "n",
+                Opcode.OPCODE152 => "n,n,n",
+                Opcode.OPCODE154 => "n,n",
+                Opcode.OPCODE155 => "n,n,n,n,n",
+                Opcode.OPCODE156 => "str,n,n",
+                Opcode.OPCODE158 => "n",
+                Opcode.OPCODE195 => "n,n,bmn",
+                Opcode.OPCODE193 => "n,n,n,bmn",
+                Opcode.OPCODE194 => "n,n",
+                Opcode.OPCODE196 => "n,nn",
+                Opcode.OPCODE197 => "n",
+                Opcode.OPCODE198 => "n,n",
+                Opcode.OPCODE199 => "n,n",
+                Opcode.OPCODE224 => "s,n,n,n,n",
+                Opcode.OPCODE225 => "n,n",
+                Opcode.DEBUGOUT => "str,nn",
+                _ => null
+            };
+        }
         
         private static readonly HashSet<Opcode> NeedsStringFixup = new HashSet<Opcode>
         {
@@ -96,19 +104,19 @@ DEBUGOUT=str,nn";
         
         static OpcodeDefinitions()
         {
-            foreach (var entry in Encodings.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            for (var i = 0; i < 256; i++)
             {
-                var parts = entry.Split('=');
-                Trace.Assert(parts.Length == 2);
-                Trace.Assert(Enum.TryParse<Opcode>(parts[0], out var opcode));
-                var alwaysJump = parts[1].EndsWith("!");
+                var val = GetOpcodeEncodingString((Opcode) i);
+                if (val == null) continue;
+                
+                var alwaysJump = val.EndsWith("!");
                 if (alwaysJump)
-                    parts[1] = parts[1][..^1];
-                var elements = parts[1].Length == 0 
+                    val = val[..^1];
+                var elements = val.Length == 0 
                     ? new OpcodeEncodingElement[0] 
-                    : parts[1].Split(',').Select(GetElement).ToArray();
-                EncodingElements[(int)opcode] = elements;
-                IsUnconditionalJumpMap[(int)opcode] = alwaysJump;
+                    : val.Split(',').Select(GetElement).ToArray();
+                EncodingElements[i] = elements;
+                IsUnconditionalJumpMap[i] = alwaysJump;
             }
         }
         
@@ -138,6 +146,8 @@ DEBUGOUT=str,nn";
                 (false, 5) => JumpCondition.Less,
                 (false, 6) => JumpCondition.BitwiseAndNotZero, /* Jump if bitwise And is Not Zero */
                 (true, 6) => JumpCondition.BitwiseAndZero, /* Jump if bitwise And is Zero */
+                (false, 7) => JumpCondition.BitSet,
+                (true, 7) => JumpCondition.BitZero,
                 _ => throw new ArgumentOutOfRangeException()
             };
         }

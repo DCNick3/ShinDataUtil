@@ -19,7 +19,7 @@ namespace ShinDataUtil.Scenario
         public BinaryOperationArgument(byte type, ushort destinationAddress, NumberSpec argument1, NumberSpec argument2)
         {
             type = (byte) (type & 0x7f);
-            Trace.Assert(type <= 11);
+            Trace.Assert(Enum.IsDefined(typeof(Operation), type));
             Type = (Operation) type;
             DestinationAddress = destinationAddress;
             Argument1 = argument1;
@@ -52,7 +52,7 @@ namespace ShinDataUtil.Scenario
             return new BinaryOperationArgument((byte)Operation.Argument2, address, number);
         }
 
-        public bool ShouldHaveFirstArgumentSeparatelyEncoded => Argument1.Address != DestinationAddress;
+        public bool ShouldHaveFirstArgumentSeparatelyEncoded => !Argument1.IsConstant || Argument1.Address != DestinationAddress;
         public Operation Type { get; }
         public NumberSpec Argument1 { get; }
         public NumberSpec Argument2 { get; }
@@ -75,6 +75,8 @@ namespace ShinDataUtil.Scenario
             
             SetBit = 15,
             ResetBit = 16,
+            
+            TzcntUpper = 17 // Reset lower Argument2 bits and do tzcnt (WTF, man, why would you do this?)
             /* others are a pain to figure out */
         }
     }

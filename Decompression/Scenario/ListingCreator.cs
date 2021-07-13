@@ -60,8 +60,30 @@ namespace ShinDataUtil.Decompression.Scenario
                 BitwiseXor => "xor",
                 LeftShift => "lsh",
                 RightShift => "rsh",
+                SetBit => "bset",
+                ResetBit => "brst",
+                TzcntUpper => "tzcntupr",
                 _ => throw new ArgumentOutOfRangeException(),
             } + $" {FormatNumber(NumberSpec.FromAddress(binaryOperationArgument.DestinationAddress))}, " + FormatNumber(binaryOperationArgument.Argument1) + ", " + FormatNumber(binaryOperationArgument.Argument2);
+        }
+
+        private string FormatUnaryOperation(Instruction instruction)
+        {
+            UnaryOperationArgument operationArgument = instruction.Data[0];
+            return operationArgument.Type switch
+            {
+                UnaryOperationArgument.Operation.Negate => "neg",
+                UnaryOperationArgument.Operation.Abs => "abs",
+                UnaryOperationArgument.Operation.Sin => "sin",
+                UnaryOperationArgument.Operation.Cos => "cos",
+                UnaryOperationArgument.Operation.Tan => "tan",
+                UnaryOperationArgument.Operation.ASin => "asin",
+                UnaryOperationArgument.Operation.ACos => "acos",
+                UnaryOperationArgument.Operation.ATan => "atan",
+                UnaryOperationArgument.Operation.Popcnt => "popcnt",
+                UnaryOperationArgument.Operation.Tzcnt => "tzcnt",
+                _ => throw new ArgumentOutOfRangeException(),
+            } + $" {FormatNumber(NumberSpec.FromAddress(operationArgument.DestinationAddress))}, " + FormatNumber(operationArgument.Argument);
         }
 
         private string FormatConditionalJump(Instruction instruction)
@@ -77,6 +99,8 @@ namespace ShinDataUtil.Decompression.Scenario
                 JumpCondition.Less => "l",
                 JumpCondition.BitwiseAndNotZero => "anz", /* Jump if bitwise And is Not Zero */
                 JumpCondition.BitwiseAndZero => "az", /* Jump if bitwise And is Zero */
+                JumpCondition.BitSet => "bs",
+                JumpCondition.BitZero => "bz",
                 _ => throw new ArgumentOutOfRangeException(),
             };
             return s + $" {FormatNumber(instruction.Data[1])}, {FormatNumber(instruction.Data[2])}, " +
@@ -163,6 +187,8 @@ namespace ShinDataUtil.Decompression.Scenario
 
         private string FormatInstruction(Instruction instruction)
         {
+            if (instruction.Opcode == Opcode.uo)
+                return FormatUnaryOperation(instruction);
             if (instruction.Opcode == Opcode.bo)
                 return FormatBinaryOperation(instruction);
             if (instruction.Opcode == Opcode.jc)

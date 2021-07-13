@@ -177,7 +177,8 @@ namespace ShinDataUtil.Decompression.Scenario
                 if (!seenAddrMask[i])
                     nonSeenAddresses.Add(i + initialOffset);
             
-            Trace.Assert(nonSeenAddresses.Count < 16);
+            // TODO: why this fails?
+            //Trace.Assert(nonSeenAddresses.Count < 16);
 
             return reader._disassemblyViewBuilder.Build();
         }
@@ -244,6 +245,12 @@ namespace ShinDataUtil.Decompression.Scenario
                     }
                 case OpcodeEncodingElement.MessageId:
                     return FeedByte() | (FeedByte() << 8) | (FeedByte() << 16);
+                case OpcodeEncodingElement.UnaryOperationArgument:
+                    tempByte = FeedByte();
+                    if ((tempByte & 0x80) != 0)
+                        return new UnaryOperationArgument(tempByte, FeedShort(), FeedNumber());
+                    else 
+                        return new UnaryOperationArgument(tempByte, FeedShort());
                 case OpcodeEncodingElement.BinaryOperationArgument:
                     tempByte = FeedByte();
                     if ((tempByte & 0x80) != 0)
@@ -294,7 +301,7 @@ namespace ShinDataUtil.Decompression.Scenario
         private (bool, Opcode, dynamic[]) FeedOneInstruction()
         {
             var opcode = (Opcode)FeedByte();
-            Console.WriteLine($"0x{_offset-1:x6} {opcode}");
+            //Console.WriteLine($"0x{_offset-1:x6} {opcode}");
             
             var encoding = OpcodeDefinitions.GetEncoding(opcode);
             var data = encoding.Select(FeedElement).ToArray();

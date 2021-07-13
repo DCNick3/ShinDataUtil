@@ -10,7 +10,10 @@ namespace ShinDataUtil.Scenario
         // Operations (do not yield to game loop)
         
         
-        OPCODE64 = 64,
+        /// <summary>
+        /// Binary operation (two arguments...)
+        /// </summary>
+        uo = 64,
         
         /// <summary>
         /// Binary operation (two arguments...)

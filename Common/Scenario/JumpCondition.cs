@@ -9,6 +9,8 @@ namespace ShinDataUtil.Common.Scenario
         LessOrEqual,
         Less,
         BitwiseAndNotZero,
-        BitwiseAndZero
+        BitwiseAndZero,
+        BitSet,
+        BitZero,
     }
 }
