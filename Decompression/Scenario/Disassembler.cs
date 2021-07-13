@@ -178,7 +178,7 @@ namespace ShinDataUtil.Decompression.Scenario
                     nonSeenAddresses.Add(i + initialOffset);
             
             // TODO: why this fails?
-            //Trace.Assert(nonSeenAddresses.Count < 16);
+            Trace.Assert(nonSeenAddresses.Count < 16);
 
             return reader._disassemblyViewBuilder.Build();
         }
@@ -197,7 +197,9 @@ namespace ShinDataUtil.Decompression.Scenario
                 var (continueBlock, opcode, data) = FeedOneInstruction();
                 _disassemblyViewBuilder.Visit(startOffset, _offset - startOffset, opcode, data.ToImmutableArray());
                 
-                if (!continueBlock)
+                // we only follow the continueBlock logic when near the boundary
+                // this assumes that all instructions are tightly packed (which they are)
+                if (!continueBlock && _offset + 32 >= _memory.Length)
                     break;
             }
             
