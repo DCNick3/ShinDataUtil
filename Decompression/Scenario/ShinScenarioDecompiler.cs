@@ -364,15 +364,7 @@ namespace ShinDataUtil.Decompression.Scenario
 
                 var labelBuilder = new LabelCollection.Builder();
                 //labelBuilder.AddEntries(entries, entryNames);
-                
-                var instr = disassemblyView.GetInstructionAt(disassemblyView.BeginAddress);
-                if (instr.Opcode == Opcode.jc && instr.JumpCondition == JumpCondition.GreaterOrEqual)
-                {
-                    instr = disassemblyView.GetNextInstruction(disassemblyView.BeginAddress).Item2;
-                    Trace.Assert(instr.Opcode == Opcode.j);
-                    labelBuilder.Add(instr.Data[0], "ENTRY_TEST_MODE");
-                }
-                
+
                 s.Restart();
                 // TODO: make a general way to declare transformation applied to the "stock" scenario
                 FillKnownLabels(disassemblyView, labelBuilder);

@@ -30,6 +30,8 @@ namespace ShinDataUtil.Decompression.Scenario
             if (number.IsConstant)
                 return $"{number.Value}n";
             Trace.Assert(number.Address.HasValue);
+            if (number.IsMem3)
+                return $"l@0x{number.Address ?? 0x0:x4}";
             return $"@0x{number.Address ?? 0x0:x4}";
         }
 
@@ -223,6 +225,7 @@ namespace ShinDataUtil.Decompression.Scenario
                 var prefix = instr.Opcode switch
                 {
                     Opcode.call => "FUN_",
+                    Opcode.callex => "FUN_",
                     _ => "LAB_",
                 };
                 if (creator._labels.TryGetValue(jumpOffset, out var lab))
