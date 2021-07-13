@@ -177,7 +177,6 @@ namespace ShinDataUtil.Decompression.Scenario
                 if (!seenAddrMask[i])
                     nonSeenAddresses.Add(i + initialOffset);
             
-            // TODO: why this fails?
             Trace.Assert(nonSeenAddresses.Count < 16);
 
             return reader._disassemblyViewBuilder.Build();

@@ -308,6 +308,8 @@ namespace ShinDataUtil.Decompression.Scenario
 
         private static void FillKnownLabels(DisassemblyView disassemblyView, LabelCollection.Builder l)
         {
+            l.Add(0x005f3d, "fun_load_bustup");
+            l.Add(0x005f91, "fun_unlock_cg");
         }
  
         public static void Decompile(ReadOnlyMemory<byte> memory, string destinationDirectory)
