@@ -21,12 +21,19 @@ namespace ShinDataUtil.Decompression
                 picture[Marshal.SizeOf<PictureHeader>()..]);
 
             Trace.Assert(header.magic == 0x34434950);
+            Trace.Assert(header.version == 3);
+            Trace.Assert(header.fileSize == picture.Length);
+            Trace.Assert(header.originX == header.effectiveWidth / 2);
+            Trace.Assert(header.originY == header.effectiveHeight 
+                         || header.originY == header.effectiveHeight / 2
+                         || header.originY == 0);
+            Trace.Assert(header.field20 == 1 || header.field20 == 0);
             
             var entries = new PictureHeaderFragmentEntry[header.entryCount];
             for (var i = 0; i < entries.Length; i++)
                 entries[i] = entriesData[i];
 
-            int totalWidth = 0, totalHeight = 0;
+            int totalWidth = header.effectiveWidth, totalHeight = header.effectiveHeight;
             foreach (var entry in entries)
             {
                 var size = ShinTextureDecompress.GetImageFragmentSize(entry.GetData(picture));
@@ -45,13 +52,16 @@ namespace ShinDataUtil.Decompression
         {
 #pragma warning disable 649
             public uint magic;
-            public uint field4;
-            public uint field8;
-            public uint field12;
-            public uint field16;
+            public uint version;
+            public uint fileSize;
+            public ushort originX;
+            public ushort originY;
+            public ushort effectiveWidth;
+            public ushort effectiveHeight;
             public uint field20;
             public uint entryCount;
             public uint pictureId;
+            public uint scale; // later divided by 4096, so the scale is in units of 4096
 #pragma warning restore 649
         }
 
