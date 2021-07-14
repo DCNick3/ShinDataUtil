@@ -9,6 +9,7 @@ using Microsoft.VisualBasic;
 using ShinDataUtil.Common.Scenario;
 using ShinDataUtil.Scenario;
 using static ShinDataUtil.Scenario.BinaryOperationArgument.Operation;
+using static ShinDataUtil.Scenario.UnaryOperationArgument.Operation;
 
 namespace ShinDataUtil.Decompression.Scenario
 {
@@ -74,16 +75,16 @@ namespace ShinDataUtil.Decompression.Scenario
             UnaryOperationArgument operationArgument = instruction.Data[0];
             return operationArgument.Type switch
             {
-                UnaryOperationArgument.Operation.Negate => "neg",
-                UnaryOperationArgument.Operation.Abs => "abs",
-                UnaryOperationArgument.Operation.Sin => "sin",
-                UnaryOperationArgument.Operation.Cos => "cos",
-                UnaryOperationArgument.Operation.Tan => "tan",
-                UnaryOperationArgument.Operation.ASin => "asin",
-                UnaryOperationArgument.Operation.ACos => "acos",
-                UnaryOperationArgument.Operation.ATan => "atan",
-                UnaryOperationArgument.Operation.Popcnt => "popcnt",
-                UnaryOperationArgument.Operation.Tzcnt => "tzcnt",
+                Negate => "neg",
+                Abs => "abs",
+                Sin => "sin",
+                Cos => "cos",
+                Tan => "tan",
+                ASin => "asin",
+                ACos => "acos",
+                ATan => "atan",
+                Popcnt => "popcnt",
+                Tzcnt => "tzcnt",
                 _ => throw new ArgumentOutOfRangeException(),
             } + $" {FormatNumber(NumberSpec.FromAddress(operationArgument.DestinationAddress))}, " + FormatNumber(operationArgument.Argument);
         }

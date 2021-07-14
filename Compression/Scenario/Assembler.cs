@@ -85,7 +85,7 @@ namespace ShinDataUtil.Compression.Scenario
                 case OpcodeEncodingElement.AddressArray: return 1 + 2 * ((ImmutableArray<ushort>)value).Length;
                 case OpcodeEncodingElement.NumberArray:
                     return 1 + ((ImmutableArray<NumberSpec>) value).Select(NumberLength).Sum();
-                case OpcodeEncodingElement.JumpOffsetArray: return 1 + 4 * ((ImmutableArray<int>) value).Length;
+                case OpcodeEncodingElement.JumpOffsetArray: return 2 + 4 * ((ImmutableArray<int>) value).Length;
                 case OpcodeEncodingElement.String: return 1 + StringLength(opcode, (string)value) + 1;
                 case OpcodeEncodingElement.LongString: return 2 + StringLength(opcode, (string)value) + 1;
                 case OpcodeEncodingElement.StringArray:
@@ -95,9 +95,17 @@ namespace ShinDataUtil.Compression.Scenario
                         .Sum();
                 case OpcodeEncodingElement.PostfixNotationExpression: return RpneLength((PostfixExpression)value);
                 case OpcodeEncodingElement.BinaryOperationArgument: return BinaryOperationArgumentLength((BinaryOperationArgument)value);
+                case OpcodeEncodingElement.UnaryOperationArgument: return UnaryOperationArgumentLength((UnaryOperationArgument) value);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(encoding), encoding, null);
             }
+        }
+
+        private static int UnaryOperationArgumentLength(UnaryOperationArgument value)
+        {
+            if (value.ShouldHaveArgumentSeparatelyEncoded)
+                return 1 + 2 + NumberLength(value.Argument);
+            return 1 + 2;
         }
 
         private static int BinaryOperationArgumentLength(BinaryOperationArgument value)
@@ -281,7 +289,7 @@ namespace ShinDataUtil.Compression.Scenario
             bw.Write((byte)0x80); /* end-of-expression marker */
         }
 
-        private static void EncodeOpcode65(BinaryWriter bw, BinaryOperationArgument value)
+        private static void EncodeBinaryOperation(BinaryWriter bw, BinaryOperationArgument value)
         {
             if (value.ShouldHaveFirstArgumentSeparatelyEncoded)
             {
@@ -297,6 +305,23 @@ namespace ShinDataUtil.Compression.Scenario
                 bw.Write(type);
                 bw.Write(value.DestinationAddress);
                 EncodeNumber(bw, value.Argument2);
+            }
+        }
+
+        private static void EncodeUnaryOperation(BinaryWriter bw, UnaryOperationArgument value)
+        {
+            if (value.ShouldHaveArgumentSeparatelyEncoded)
+            {
+                var type = (byte) (0x80 | (int) value.Type);
+                bw.Write(type);
+                bw.Write(value.DestinationAddress);
+                EncodeNumber(bw, value.Argument);
+            }
+            else
+            {
+                var type = (byte) (value.Type);
+                bw.Write(type);
+                bw.Write(value.DestinationAddress);
             }
         }
         
@@ -328,12 +353,13 @@ namespace ShinDataUtil.Compression.Scenario
                 case OpcodeEncodingElement.BitmappedNumberArguments:
                     EncodeBitmappedNumberArguments(bw, (ImmutableArray<NumberSpec>) value); break;
                 case OpcodeEncodingElement.PostfixNotationExpression: EncodeRpne(bw, (PostfixExpression) value); break;
-                case OpcodeEncodingElement.BinaryOperationArgument: EncodeOpcode65(bw, (BinaryOperationArgument) value); break;
+                case OpcodeEncodingElement.BinaryOperationArgument: EncodeBinaryOperation(bw, (BinaryOperationArgument) value); break;
+                case OpcodeEncodingElement.UnaryOperationArgument: EncodeUnaryOperation(bw, (UnaryOperationArgument) value); break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(encoding), encoding, null);
             }
         }
-        
+
         private static void EncodeInstruction(BinaryWriter bw, Instruction instruction)
         {
             bw.Write((byte)instruction.Opcode);

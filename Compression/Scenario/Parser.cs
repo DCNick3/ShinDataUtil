@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -7,6 +8,8 @@ using System.Runtime.Serialization;
 using System.Text;
 using ShinDataUtil.Common.Scenario;
 using ShinDataUtil.Scenario;
+using static ShinDataUtil.Scenario.UnaryOperationArgument.Operation;
+using static ShinDataUtil.Scenario.BinaryOperationArgument.Operation;
 
 namespace ShinDataUtil.Compression.Scenario
 {
@@ -21,15 +24,21 @@ namespace ShinDataUtil.Compression.Scenario
             = Enum.GetValues(typeof(Opcode)).Cast<Opcode>()
                 .ToImmutableDictionary(_ => _.ToString());
 
-        private static readonly ImmutableHashSet<string> Opcode65Mnemonics = new HashSet<string>
+        private static readonly ImmutableHashSet<string> UnaryOperationMnemonics = new HashSet<string>
+        {
+            "neg", "abs", "sin", "cos", "tan", "asin", "acos", "atan", "popcnt", "tzcnt"
+        }.ToImmutableHashSet();
+
+        private static readonly ImmutableHashSet<string> BinaryOperationMnemonics = new HashSet<string>
         {
             "add", "sub", "mul", "div", "rem", "and", "or", "xor", "lsh", "rsh",
+            "bset", "brst", "tzcntupr",
             "mov"
         }.ToImmutableHashSet();
 
         private static readonly ImmutableHashSet<string> ConditionalJumpMnemonics = new HashSet<string>
         {
-            "jeq", "jneq", "jge", "jg", "jle", "jl", "janz", "jaz",
+            "jeq", "jneq", "jge", "jg", "jle", "jl", "janz", "jaz", "jbs", "jbz"
         }.ToImmutableHashSet();
 
         private readonly TextReader _input;
@@ -166,6 +175,18 @@ namespace ShinDataUtil.Compression.Scenario
             return checked((ushort) r);
         }
 
+        ushort ParseLocalAddress(ref ReadOnlySpan<char> line)
+        {
+            ExpectFixedFeed(ref line, "l@0x");
+            var lineOld = line;
+            var r = ParseHexInteger(ref line);
+            /*if (r == 55)
+            {
+                ParseHexInteger(ref lineOld);
+            }*/
+            return checked((ushort) r);
+        }
+
         string ParseString(ref ReadOnlySpan<char> line)
         {
             ExpectFixedFeed(ref line, '"');
@@ -236,7 +257,9 @@ namespace ShinDataUtil.Compression.Scenario
         NumberSpec ParseNumber(ref ReadOnlySpan<char> line)
         {
             if (line[0] == '@')
-                return NumberSpec.FromAddress(ParseAddress(ref line));
+                return NumberSpec.FromMem1Address(ParseAddress(ref line));
+            if (line[0] == 'l')
+                return NumberSpec.FromMem3Address(ParseLocalAddress(ref line));
             return NumberSpec.FromConstant(ParseIntegerWithSuffix(ref line, "n"));
         }
 
@@ -407,9 +430,16 @@ namespace ShinDataUtil.Compression.Scenario
                 return res;
             }
 
-            if (Opcode65Mnemonics.Contains(opcodeName))
+            if (BinaryOperationMnemonics.Contains(opcodeName))
             {
-                var res = ParseOpcode65(ref line, opcodeName);
+                var res = ParseBinaryOperation(ref line, opcodeName);
+                _currentInstructionIndex++;
+                return res;
+            }
+
+            if (UnaryOperationMnemonics.Contains(opcodeName))
+            {
+                var res = ParseUnaryOperation(ref line, opcodeName);
                 _currentInstructionIndex++;
                 return res;
             }
@@ -440,7 +470,38 @@ namespace ShinDataUtil.Compression.Scenario
             return new Instruction(opcode, data.ToImmutableArray());
         }
 
-        private Instruction ParseOpcode65(ref ReadOnlySpan<char> line, string opcodeName)
+        private Instruction ParseUnaryOperation(ref ReadOnlySpan<char> line, string opcodeName)
+        {
+            var type = opcodeName switch
+            {
+                "neg" => Negate, 
+                "abs" => Abs, 
+                "sin" => Sin, 
+                "cos" => Cos, 
+                "tan" => Tan, 
+                "asin" => ASin, 
+                "acos" => ACos, 
+                "atan" => ATan, 
+                "popcnt" => Popcnt, 
+                "tzcnt" => Tzcnt,
+                _ => throw new ArgumentException(nameof(opcodeName))
+            };
+            
+            FeedWhitespace(ref line);
+            
+            var destination = ParseAddress(ref line);
+            ExpectFixedFeed(ref line, ',');
+            FeedWhitespace(ref line);
+            FeedWhitespace(ref line);
+            var source = ParseNumber(ref line);
+
+            return new Instruction(Opcode.uo, new dynamic[]
+            {
+                new UnaryOperationArgument(type, destination, source)
+            }.ToImmutableArray());
+        }
+        
+        private Instruction ParseBinaryOperation(ref ReadOnlySpan<char> line, string opcodeName)
         {
             ushort destination;
             if (opcodeName == "mov")
@@ -479,16 +540,19 @@ namespace ShinDataUtil.Compression.Scenario
 
             var type = opcodeName switch
             {
-                "add" => BinaryOperationArgument.Operation.Add,
-                "sub" => BinaryOperationArgument.Operation.Subtract,
-                "mul" => BinaryOperationArgument.Operation.Multiply,
-                "div" => BinaryOperationArgument.Operation.Divide,
-                "rem" => BinaryOperationArgument.Operation.Remainder,
-                "and" => BinaryOperationArgument.Operation.BitwiseAnd,
-                "or" => BinaryOperationArgument.Operation.BitwiseOr,
-                "xor" => BinaryOperationArgument.Operation.BitwiseXor,
-                "lsh" => BinaryOperationArgument.Operation.LeftShift,
-                "rsh" => BinaryOperationArgument.Operation.RightShift,
+                "add" => Add,
+                "sub" => Subtract,
+                "mul" => Multiply,
+                "div" => Divide,
+                "rem" => Remainder,
+                "and" => BitwiseAnd,
+                "or" => BitwiseOr,
+                "xor" => BitwiseXor,
+                "lsh" => LeftShift,
+                "rsh" => RightShift,
+                "bset" => SetBit,
+                "brst" => ResetBit,
+                "tzcntupr" => TzcntUpper,
                 _ => throw new ArgumentException(nameof(opcodeName)),
             };
             
@@ -514,7 +578,6 @@ namespace ShinDataUtil.Compression.Scenario
             {
                 new BinaryOperationArgument(type, destination, arg1, arg2),
             }.ToImmutableArray());
-            
         }
 
         private Instruction ParseConditionalJump(ref ReadOnlySpan<char> line, string opcodeName)
@@ -529,6 +592,8 @@ namespace ShinDataUtil.Compression.Scenario
                 "jl" => JumpCondition.Less,
                 "janz" => JumpCondition.BitwiseAndNotZero,
                 "jaz" => JumpCondition.BitwiseAndZero,
+                "jbz" => JumpCondition.BitZero,
+                "jbs" => JumpCondition.BitSet,
                 _ => throw new ArgumentOutOfRangeException(),
             };
             var jumpType = jumpCondition switch
@@ -541,6 +606,8 @@ namespace ShinDataUtil.Compression.Scenario
                 JumpCondition.Less => 5,
                 JumpCondition.BitwiseAndNotZero => 6,
                 JumpCondition.BitwiseAndZero => 0x80 | 6,
+                JumpCondition.BitSet => 7,
+                JumpCondition.BitZero => 0x80 | 7,
                 _ => throw new ArgumentOutOfRangeException()
             };
 

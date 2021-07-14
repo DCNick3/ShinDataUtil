@@ -24,6 +24,14 @@ namespace ShinDataUtil.Scenario
             Argument = argument;
         }
 
+        public UnaryOperationArgument(Operation type, ushort destinationAddress, NumberSpec argument)
+        {
+            Trace.Assert(Enum.IsDefined(typeof(Operation), type));
+            Type = type;
+            DestinationAddress = destinationAddress;
+            Argument = argument;   
+        }
+
         public bool ShouldHaveArgumentSeparatelyEncoded => !Argument.IsConstant || Argument.Address != DestinationAddress;
         public Operation Type { get; }
         public NumberSpec Argument { get; }
