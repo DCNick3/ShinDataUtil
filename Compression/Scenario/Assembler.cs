@@ -190,15 +190,23 @@ namespace ShinDataUtil.Compression.Scenario
             {
                 Debug.Assert(value.Address != null, "value.Address != null");
                 var addr = checked((ushort) value.Address.Value);
-                if (addr < 16)
-                    bw.Write((byte) (0x80 | (3 << 4) | addr & 0xf));
-                else if (addr < 4096)
+                if (!value.IsMem3)
                 {
-                    bw.Write((byte) (0x80 | (4 << 4) | (addr >> 8) & 0xf));
-                    bw.Write((byte) addr);
+                    if (addr < 16)
+                        bw.Write((byte) (0x80 | (3 << 4) | addr & 0xf));
+                    else if (addr < 4096)
+                    {
+                        bw.Write((byte) (0x80 | (4 << 4) | (addr >> 8) & 0xf));
+                        bw.Write((byte) addr);
+                    }
+                    else
+                        throw new ArgumentException();
                 }
                 else
-                    throw new ArgumentException();
+                {
+                    Trace.Assert(addr >= 1 && addr <= 16);
+                    bw.Write((byte) (0x80 | (5 << 4) | (addr - 1) & 0xf));
+                }
             }
         }
 
@@ -414,6 +422,19 @@ namespace ShinDataUtil.Compression.Scenario
                 if (actualLength != predictedLength)
                     Debugger.Break();
                 Debug.Assert(actualLength == predictedLength);
+                // this code is useful for diffing
+                /*var exp = 0x00006d72;
+                if (pos0 <= exp && pos1 > exp)
+                {
+                    var p = pos0 + 1;
+                    var dataOffsets = instruction.Encoding.Select((x, i) =>
+                    {
+                        var pp = p;
+                        p += ElementLength(instruction.Opcode, x, instruction.Data[i]);
+                        return pp;
+                    }).ToImmutableArray();
+                    Debugger.Break();
+                }*/
             }
             
             bw.Close();

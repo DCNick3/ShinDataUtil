@@ -44,7 +44,7 @@ namespace ShinDataUtil.Scenario
         
         public static BinaryOperationArgument MovZero(ushort address)
         {
-            return new BinaryOperationArgument((byte)Operation.Zero, address, NumberSpec.FromConstant(0));
+            return new BinaryOperationArgument((byte)Operation.Argument2, address, NumberSpec.FromConstant(0));
         }
 
         public static BinaryOperationArgument MovValue(ushort address, NumberSpec number)
@@ -52,7 +52,7 @@ namespace ShinDataUtil.Scenario
             return new BinaryOperationArgument((byte)Operation.Argument2, address, number);
         }
 
-        public bool ShouldHaveFirstArgumentSeparatelyEncoded => !Argument1.IsConstant || Argument1.Address != DestinationAddress;
+        public bool ShouldHaveFirstArgumentSeparatelyEncoded => Argument1.IsConstant || Argument1.Address != DestinationAddress;
         public Operation Type { get; }
         public NumberSpec Argument1 { get; }
         public NumberSpec Argument2 { get; }

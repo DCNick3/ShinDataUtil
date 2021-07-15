@@ -263,6 +263,8 @@ namespace ShinDataUtil.Decompression.Scenario
             // The ushort is the character index (used for lip sync) 
             var section44 = Handle44(data.Slice((int) header.offset_44)).ToImmutableArray();
 
+            // those commented out are not used in the konosuba (their offsets are zero)
+            
             // Looks like bgm names
             var section48 = ImmutableArray<(string, string, ushort)>.Empty; //Handle48(data.Slice((int) header.offset_48)).ToImmutableArray();
                 

@@ -94,12 +94,12 @@ namespace ShinDataUtil.Compression.Scenario
                 WriteString(s.Item2, bw1);
                 bw1.Write(s.Item3);
             }, bw);
-            var offset48 = WriteGenericSection(info.Section48, (s, bw1) =>
+            var offset48 = 0u; /* WriteGenericSection(info.Section48, (s, bw1) =>
             {
                 WriteString(s.Item1, bw1);
                 WriteString(s.Item2, bw1);
                 bw1.Write(s.Item3);
-            }, bw);
+            }, bw);*/
             var offset52 = WriteGenericSection(info.Section52, WriteString, bw);
             var offset56 = WriteGenericSection(info.Section56, (s, bw1) =>
             {
@@ -113,25 +113,25 @@ namespace ShinDataUtil.Compression.Scenario
                 bw1.Write((byte)s.Item2.Length);
                 bw1.Write(s.Item2);
             }, bw);
-            var offset64 = WriteSimplerSection(info.Section64, (s, bw1) =>
+            var offset64 = 0u; /* WriteSimplerSection(info.Section64, (s, bw1) =>
             {
                 WriteString(s.Item1, bw1);
                 bw1.Write((ushort)s.Item2.Length);
                 foreach (var us in s.Item2)
                     bw1.Write(us);
-            }, bw);
-            var offset68 = WriteSimplerSection(info.Section68, (s, bw1) =>
+            }, bw);*/
+            var offset68 = 0u; /* WriteSimplerSection(info.Section68, (s, bw1) =>
             {
                 bw1.Write(s.Item1);
                 bw1.Write(s.Item2);
                 bw1.Write(s.Item3);
-            }, bw);
-            var offset72 = WriteGenericSection(info.Section72, (s, bw1) =>
+            }, bw);*/
+            var offset72 = 0u; /* WriteGenericSection(info.Section72, (s, bw1) =>
             {
                 bw1.Write(s.Item1);
                 WriteString(s.Item2, bw1);
-            }, bw);
-            var offset76 = WriteGenericSection(info.Section76, (s, bw1) =>
+            }, bw);*/
+            var offset76 = 0u; /* WriteGenericSection(info.Section76, (s, bw1) =>
             {
                 bw1.Write(s.Item1);
                 bw1.Write(s.Item2);
@@ -152,7 +152,7 @@ namespace ShinDataUtil.Compression.Scenario
                     default:
                         throw new InvalidDataException();
                 }
-            }, bw);
+            }, bw);*/
 
             return (offset36, offset40, offset44, offset48, offset52, offset56, offset60, offset64, offset68, offset72,
                 offset76);
@@ -167,9 +167,9 @@ namespace ShinDataUtil.Compression.Scenario
                 // As in the original
                 // (whatever they mean)
                 // I'm not really sure if the game actually uses them
-                unk1 = 157167,
-                unk2 = 63,
-                unk3 = 129,
+                unk1 = 10999,
+                unk2 = 127,
+                unk3 = 408,
                 unk4 = 0,
                 unk5 = 0,
                 unk6 = 0
@@ -214,6 +214,8 @@ namespace ShinDataUtil.Compression.Scenario
             
             instr = Assembler.FixupJumpOffsets(codeOffset, instr);
             Assembler.Assemble(instr, output);
+            while (output.Length % 16 != 0)
+                output.WriteByte(0);
 
             header.size = (uint)output.Length;
             
