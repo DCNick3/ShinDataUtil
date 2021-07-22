@@ -60,10 +60,11 @@ namespace ShinDataUtil.Decompression
                 var mipmap3data = elementData[mipmap3Offset..mipmap4Offset];
                 var mipmap4data = elementData[mipmap4Offset..mipmap5Offset];
                 
-                var image1 = Image.LoadPixelData<Gray8>(mipmap1data, elementHeader.width, elementHeader.height);
-                var image2 = Image.LoadPixelData<Gray8>(mipmap2data, elementHeader.width / 2, elementHeader.height / 2);
-                var image3 = Image.LoadPixelData<Gray8>(mipmap3data, elementHeader.width / 4, elementHeader.height / 4);
-                var image4 = Image.LoadPixelData<Gray8>(mipmap4data, elementHeader.width / 8, elementHeader.height / 8);
+                
+                var image1 = Image.LoadPixelData<L8>(mipmap1data, elementHeader.width, elementHeader.height);
+                var image2 = Image.LoadPixelData<L8>(mipmap2data, elementHeader.width / 2, elementHeader.height / 2);
+                var image3 = Image.LoadPixelData<L8>(mipmap3data, elementHeader.width / 4, elementHeader.height / 4);
+                var image4 = Image.LoadPixelData<L8>(mipmap4data, elementHeader.width / 8, elementHeader.height / 8);
 
                 //using var f = File.Open(, FileMode.Create, FileAccess.Write);
 

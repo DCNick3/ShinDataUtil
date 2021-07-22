@@ -162,7 +162,7 @@ namespace ShinDataUtil.Decompression
                 {
                     if (!ba[i - offsetX + (j - offsetY) * width])
                     //if (!vertices.Any(_ => _.Contains(i - offsetX, j - offsetY)))
-                        row[i] = Rgba32.Transparent;
+                        row[i] = Color.Transparent;
                 }
             }
         }

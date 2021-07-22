@@ -1,8 +1,6 @@
 using System;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.Primitives;
 
 namespace ShinDataUtil.Compression
 {

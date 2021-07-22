@@ -441,6 +441,26 @@ namespace ShinDataUtil
             return 0;
         }
 
+        private static int TexDecode(ReadOnlySpan<string> args)
+        {
+            if (args.Length != 2)
+            {
+                Console.Error.WriteLine("Usage: ShinDataUtil tex-decode [intex] [outpng]");
+                return 1;
+            }
+
+            var intex = args[0];
+            var outpng = args[1];
+
+            var intexData = File.ReadAllBytes(intex);
+
+            var image = DungeonTexDecoder.DecodeTex(intexData);
+            
+            FastPngEncoder.WritePngToFile(outpng, image);
+            
+            return 0;
+        }
+
         private class ActionList
         {
             public delegate int Action(ReadOnlySpan<string> args);
@@ -531,6 +551,7 @@ namespace ShinDataUtil
             actions.AddAction("scenario-build", ScenarioBuild);
             actions.AddAction("rom-replace-file", RomReplaceFile);
             actions.AddAction("rom-build", RomBuild);
+            actions.AddAction("tex-decode", TexDecode);
 
             if (args.Length < 1 || args[0] == "help" || args[0] == "-h" || args[0] == "--help")
             {

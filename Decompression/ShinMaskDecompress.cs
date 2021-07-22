@@ -9,7 +9,7 @@ namespace ShinDataUtil.Decompression
     public static class ShinMaskDecompress
     {
 
-        public static unsafe Image<Gray8> Decompress(ReadOnlySpan<byte> data)
+        public static unsafe Image<L8> Decompress(ReadOnlySpan<byte> data)
         {
             var header = MemoryMarshal.Read<Header>(data);
             
@@ -31,7 +31,7 @@ namespace ShinDataUtil.Decompression
                 imageData = decompressed;
             }
 
-            return Image.LoadPixelData<Gray8>(new Configuration(), imageData, header.width, header.height); 
+            return Image.LoadPixelData<L8>(new Configuration(), imageData, header.width, header.height); 
         }
         
         private struct Header
