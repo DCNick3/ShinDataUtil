@@ -461,6 +461,32 @@ namespace ShinDataUtil
             return 0;
         }
 
+        private static int TXPLExtract(ReadOnlySpan<string> args)
+        {
+            if (args.Length < 2)
+            {
+                Console.Error.WriteLine("Usage: ShinDataUtil txpl-extract [txl|tlz file] [outfolder] [--save-sprites]");
+                return 1;
+            }
+
+            var inTXPL = args[0];
+            var outname = args[1];
+
+            bool extractSprites = false;
+            if (args.Length == 3 && args[2] == "--save-sprites")
+            {
+                extractSprites = true;
+            }
+
+            if (Directory.Exists(outname))
+                Directory.Delete(outname, true);
+            Directory.CreateDirectory(outname);
+
+            ShinTexpoolExtractor.Extract(inTXPL, outname, extractSprites);
+
+            return 0;
+        }
+
         private class ActionList
         {
             public delegate int Action(ReadOnlySpan<string> args);
@@ -552,6 +578,7 @@ namespace ShinDataUtil
             actions.AddAction("rom-replace-file", RomReplaceFile);
             actions.AddAction("rom-build", RomBuild);
             actions.AddAction("tex-decode", TexDecode);
+            actions.AddAction("txpl-extract", TXPLExtract);
 
             if (args.Length < 1 || args[0] == "help" || args[0] == "-h" || args[0] == "--help")
             {

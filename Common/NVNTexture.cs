@@ -222,6 +222,7 @@ namespace ShinDataUtil
             { NVNTexFormat.NVN_FORMAT_RGBA_DXT5,  new NVNFormatInfo(16, 4,  4, 1, CompressionFormat.Bc3) },
             { NVNTexFormat.NVN_FORMAT_RGBA_DXT1,  new NVNFormatInfo(8,  4,  4, 1, CompressionFormat.Bc1) },
             { NVNTexFormat.NVN_FORMAT_BPTC_UNORM, new NVNFormatInfo(16, 4,  4, 1, CompressionFormat.Bc7) },
+            { NVNTexFormat.NVN_FORMAT_RGBA8,      new NVNFormatInfo(4,  1,  1, 1, CompressionFormat.Rgba) }
         };
     }
 }
