@@ -487,6 +487,22 @@ namespace ShinDataUtil
             return 0;
         }
 
+        private static int TXPLBuild(ReadOnlySpan<string> args)
+        {
+            if (args.Length != 2)
+            {
+                Console.Error.WriteLine("Usage: ShinDataUtil txpl-build [infolder] [outfile]");
+                return 1;
+            }
+
+            var indir = args[0];
+            var outname = args[1];
+
+            ShinTexpoolBuilder.BuildFromDirectory(indir, outname);
+
+            return 0;
+        }
+
         private class ActionList
         {
             public delegate int Action(ReadOnlySpan<string> args);
@@ -579,6 +595,7 @@ namespace ShinDataUtil
             actions.AddAction("rom-build", RomBuild);
             actions.AddAction("tex-decode", TexDecode);
             actions.AddAction("txpl-extract", TXPLExtract);
+            actions.AddAction("txpl-build", TXPLBuild);
 
             if (args.Length < 1 || args[0] == "help" || args[0] == "-h" || args[0] == "--help")
             {

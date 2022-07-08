@@ -21,7 +21,7 @@ namespace ShinDataUtil.Decompression
 
             var header = MemoryMarshal.Read<TexHeader>(tex);
 
-            Trace.Assert(header.Magic == 0x7865742E);
+            Trace.Assert(header.Magic == TexHeader.DefaultMagic);
             Trace.Assert(header.Depth == 1); // Texture2D
             Trace.Assert(header.Levels == 1); // ???
             Trace.Assert(header.Target == 1); // NVN_TEXTURE_TARGET_2D

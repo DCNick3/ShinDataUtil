@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Collections.Generic;
 
 namespace ShinDataUtil.Decompression
 {
@@ -23,22 +24,15 @@ namespace ShinDataUtil.Decompression
                 TXPLData = compressor.Decompress(TXPLData);
             }
 
-            var header = MemoryMarshal.Read<TXPL.TXPLHeader>(TXPLData);
+            var header = MemoryMarshal.Read<TXPL.Header>(TXPLData);
 
-            Trace.Assert(header.Magic == 0x4C505854);
+            Trace.Assert(header.Magic == TXPL.Header.DefaultMagic);
 
             var texturesInfo = MemoryMarshal.Cast<byte, TXPL.TexData>(header.GetTexInfoData(TXPLData));
             var texpoolInfo = MemoryMarshal.Read<TXPL.TexpoolInfo>(header.GetTexpoolInfoData(TXPLData));
             var spritesInfo = MemoryMarshal.Cast<byte, TXPL.Sprite>(header.GetSpriteInfoData(TXPLData)).ToArray();
 
-            var desc = new TXPL.TXPLDescription(texpoolInfo.texWidth, texpoolInfo.texHeight, texpoolInfo.texCount, spritesInfo);
-
-            var options = new JsonSerializerOptions();
-            options.WriteIndented = true;
-            var descString = JsonSerializer.Serialize(desc, options);
-
-            var jsonPath = Path.Combine(outname, "texpool.json");
-            File.WriteAllText(jsonPath, descString);
+            var texHeaders = new List<TexHeader>();
 
             foreach (var (index, texInfo) in texturesInfo.ToArray().Select((x, i) => (i, x)))
             {
@@ -48,7 +42,9 @@ namespace ShinDataUtil.Decompression
                     var texData = TXPLData.Slice((int)texInfo.offset, (int)texInfo.size);
 
                     //Also in "Umineko: Golden Fantasia" there are DDS stored in this format
+                    var texHeader = MemoryMarshal.Read<TexHeader>(texData);
                     var image = DungeonTexDecoder.DecodeTex(texData);
+                    texHeaders.Add(texHeader);
 
                     var pngPath = Path.Combine(outname, $"{index:000}.png");
                     FastPngEncoder.WritePngToFile(pngPath, image);
@@ -61,7 +57,7 @@ namespace ShinDataUtil.Decompression
                         Directory.CreateDirectory(spriteDirPath);
 
                         
-                        foreach (var (sprIndex, sprite) in desc.sprites[index].Select((x, i) => (i, x)))
+                        foreach (var (sprIndex, sprite) in spritesInfo.Where((x) => x.texNum == index).Select((x, i) => (i, x)))
                         {
                             var img = image.Clone();
                             var spriteRect = new Rectangle(sprite.x, sprite.y, sprite.width, sprite.height);
@@ -74,6 +70,15 @@ namespace ShinDataUtil.Decompression
                     }
                 }
             }
+
+            var desc = new TXPL.Description(texpoolInfo.texWidth, texpoolInfo.texHeight, texHeaders.ToArray(), spritesInfo);
+
+            var options = new JsonSerializerOptions();
+            options.WriteIndented = true;
+            var descString = JsonSerializer.Serialize(desc, options);
+
+            var jsonPath = Path.Combine(outname, "texpool.json");
+            File.WriteAllText(jsonPath, descString);
         }
     }
 }
