@@ -5,7 +5,7 @@ namespace ShinDataUtil
     public struct TexHeader
     {
         public uint Magic;
-        public uint Format;
+        public NVNTexFormat Format;
         public uint Target;
         public uint Width;
         public uint Height;

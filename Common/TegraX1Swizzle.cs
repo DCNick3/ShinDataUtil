@@ -38,21 +38,21 @@ namespace ShinDataUtil
             return mipMapSizes;
         }*/
 
-        public static void DeswizzleTexture(int width, int height, ReadOnlySpan<byte> sourceData,
+        public static void DeswizzleTexture(int width, int height, NVNTexFormat format, ReadOnlySpan<byte> sourceData,
             Span<byte> targetData, bool linearTileMode = false)
         {
-            var blkHeight = 4; //STGenericTexture.GetBlockHeight(Format);
+            var blkHeight = NVNTexture.GetBlockHeight(format);
             var blockHeight = GetBlockHeight(DivRoundUp(height, blkHeight));
             var blockHeightLog2 = Convert.ToString(blockHeight, 2).Length - 1;
-            DeswizzleTexture(width, height, sourceData, targetData, blockHeightLog2, linearTileMode);
+            DeswizzleTexture(width, height, format, sourceData, targetData, blockHeightLog2, linearTileMode);
         }
 
-        public static void DeswizzleTexture(int width, int height, ReadOnlySpan<byte> sourceData,
+        public static void DeswizzleTexture(int width, int height, NVNTexFormat format, ReadOnlySpan<byte> sourceData,
             Span<byte> targetData, int blockHeightLog2, bool linearTileMode = false)
         {
-            var bpp = 16; //STGenericTexture.GetBytesPerPixel(Format);
-            var blkWidth = 4; //STGenericTexture.GetBlockWidth(Format);
-            var blkHeight = 4; //STGenericTexture.GetBlockHeight(Format);
+            var bpp = NVNTexture.GetBytesPerPixel(format);
+            var blkWidth = NVNTexture.GetBlockWidth(format);
+            var blkHeight = NVNTexture.GetBlockHeight(format);
             var blockHeight = GetBlockHeight(DivRoundUp(height, blkHeight));
 
             var mipCount = 1;
@@ -105,7 +105,7 @@ namespace ShinDataUtil
                 byte[] result = Deswizzle(mipWidth, mipHeight, blkWidth, blkHeight, bpp, tileMode,
                     Math.Max(0, blockHeightLog2 - blockHeightShift), data);
                 //Create a copy and use that to remove unneeded data
-                Trace.Assert(targetData.Length == size);
+                //Trace.Assert(targetData.Length == size);
                 
                 result.AsSpan().Slice(0, size).CopyTo(targetData);
                 return;
