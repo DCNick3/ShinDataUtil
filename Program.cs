@@ -456,7 +456,7 @@ namespace ShinDataUtil
 
             var inData = File.ReadAllBytes(infile);
 
-            var decompressor = new DungeonLzlrDecompressor();
+            var decompressor = new ShinLZLRDecompressor();
 
             var outData = decompressor.Decompress(inData);
 
@@ -479,7 +479,7 @@ namespace ShinDataUtil
 
             var inData = File.ReadAllBytes(infile);
 
-            var compressor = new DungeonLzlrCompressor();
+            var compressor = new ShinLZLRCompressor();
 
             var outData = compressor.Compress(inData);
 
@@ -548,7 +548,7 @@ namespace ShinDataUtil
 
             if (args.Contains("--lzlr"))
             {
-                var compressor = new DungeonLzlrCompressor();
+                var compressor = new ShinLZLRCompressor();
                 texData = compressor.Compress(texData);
             }
 
@@ -601,7 +601,7 @@ namespace ShinDataUtil
             if (args.Contains("--lzlr"))
             {
                 var data = File.ReadAllBytes(outname);
-                var compressor = new DungeonLzlrCompressor();
+                var compressor = new ShinLZLRCompressor();
                 File.WriteAllBytes(outname, compressor.Compress(data).ToArray());
             }
 

@@ -2,10 +2,11 @@ using System;
 using System.Runtime.InteropServices;
 using ShinDataUtil.Common;
 using System.IO;
+using System.Diagnostics;
 
 namespace ShinDataUtil.Decompression
 {
-    public class DungeonLzlrDecompressor
+    public class ShinLZLRDecompressor
     {
         private static readonly uint[] offsetTable = new uint[]
         {
@@ -87,12 +88,9 @@ namespace ShinDataUtil.Decompression
         }
         public ReadOnlySpan<byte> Decompress(ReadOnlySpan<byte> data)
         {
-            if (!CheckHeader(ref data))
-            {
-                throw new ApplicationException("Wrong data header, not LZLR");
-            }
-
             var header = MemoryMarshal.Read<LZLRHeader>(data);
+
+            Trace.Assert(header.magic == LZLRHeader.DefaultMagic);
 
             var outData = new uint[header.unpackedSize/4];
 

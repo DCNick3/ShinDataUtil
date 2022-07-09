@@ -12,6 +12,7 @@ namespace ShinDataUtil.Common
         public int unpackedSize;
         public int dataOffset;
 
+        public static uint DefaultMagic => 0x524C5A4C;
         public static int Size => sizeof(int)*3;
     }
 }

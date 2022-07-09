@@ -13,10 +13,10 @@ namespace ShinDataUtil.Decompression
     {
         public static Image<Rgba32> DecodeTex(ReadOnlySpan<byte> tex, bool verbose = false)
         {
-            if (DungeonLzlrDecompressor.CheckHeader(ref tex))
+            if (ShinLZLRDecompressor.CheckHeader(ref tex))
             {
-                var compressor = new DungeonLzlrDecompressor();
-                tex = compressor.Decompress(tex);
+                var decompressor = new ShinLZLRDecompressor();
+                tex = decompressor.Decompress(tex);
             }
 
             var header = MemoryMarshal.Read<TexHeader>(tex);

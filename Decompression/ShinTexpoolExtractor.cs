@@ -18,10 +18,10 @@ namespace ShinDataUtil.Decompression
         {
             var TXPLData = new ReadOnlySpan<byte>(File.ReadAllBytes(inTXPL));
 
-            if (DungeonLzlrDecompressor.CheckHeader(ref TXPLData))
+            if (ShinLZLRDecompressor.CheckHeader(ref TXPLData))
             {
-                var compressor = new DungeonLzlrDecompressor();
-                TXPLData = compressor.Decompress(TXPLData);
+                var decompressor = new ShinLZLRDecompressor();
+                TXPLData = decompressor.Decompress(TXPLData);
             }
 
             var header = MemoryMarshal.Read<TXPL.Header>(TXPLData);
