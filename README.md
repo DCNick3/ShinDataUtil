@@ -3,7 +3,7 @@
 
 This is an utility for working with game files of Higurashi no Naku Koro ni visual novel released for Nintendo Switch.
 
-This is very much work in progress, so don't expect much.
+There's also a `konosuba` branch with support for konosuba's flavour of scenario and some more texture formats
 
 ## Usage
 
