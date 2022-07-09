@@ -11,7 +11,7 @@ namespace ShinDataUtil.Decompression
 {
     public class DungeonTexDecoder
     {
-        public static Image<Rgba32> DecodeTex(ReadOnlySpan<byte> tex)
+        public static Image<Rgba32> DecodeTex(ReadOnlySpan<byte> tex, bool verbose = false)
         {
             if (DungeonLzlrDecompressor.CheckHeader(ref tex))
             {
@@ -23,9 +23,13 @@ namespace ShinDataUtil.Decompression
 
             Trace.Assert(header.Magic == TexHeader.DefaultMagic);
             Trace.Assert(header.Depth == 1); // Texture2D
-            Trace.Assert(header.Levels == 1); // ???
             Trace.Assert(header.Target == 1); // NVN_TEXTURE_TARGET_2D
 
+            if (verbose)
+            {
+                Console.WriteLine($"Texture format  {header.Format}");
+                Console.WriteLine($"Levels          {header.Levels}");
+            }
 
             (int width, int height) size = checked(((int)header.Width, (int)header.Height));
 

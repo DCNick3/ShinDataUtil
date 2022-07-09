@@ -216,6 +216,11 @@ namespace ShinDataUtil
             return FormatTable[Format].CompressionFormat;
         }
 
+        public static List<NVNTexFormat> GetAvailableFormats()
+        {
+            return FormatTable.Keys.ToList();
+        }
+
         private static readonly Dictionary<NVNTexFormat, NVNFormatInfo> FormatTable =
                  new Dictionary<NVNTexFormat, NVNFormatInfo>()
         {
