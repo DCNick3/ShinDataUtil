@@ -29,29 +29,27 @@ namespace ShinDataUtil.Compression
             }
 
             var outStream = File.OpenWrite(outfile);
-            var sprites = desc.GetSprites();
-
 
             var txplHeader = new TXPL.Header();
             txplHeader.Magic = TXPL.Header.DefaultMagic;
-            txplHeader.TexpoolInfoOffset = (uint)(TXPL.Header.HeaderSize + (desc.texMetadatas.Count + 1) * TXPL.TexData.SelfSize);
-            txplHeader.TexpoolAndSpriteInfoSize = (uint)(sprites.Length * TXPL.Sprite.SelfSize + TXPL.TexpoolInfo.SelfSize);
+            txplHeader.TexpoolInfoOffset = (uint)(TXPL.Header.HeaderSize + (desc.texMetadatas.Length + 1) * TXPL.TexData.SelfSize);
+            txplHeader.TexpoolAndSpriteInfoSize = (uint)(desc.sprites.Length * TXPL.Sprite.SelfSize + TXPL.TexpoolInfo.SelfSize);
 
             outStream.Write(SpanUtil.AsReadOnlyBytes(ref txplHeader));
 
             //Space for texture data to write later
-            outStream.Write(new byte[(desc.texMetadatas.Count + 1) * TXPL.TexData.SelfSize]);
+            outStream.Write(new byte[(desc.texMetadatas.Length + 1) * TXPL.TexData.SelfSize]);
 
             var txplInfo = new TXPL.TexpoolInfo();
             txplInfo.texWidth = desc.texWidth;
             txplInfo.texHeight = desc.texHeight;
-            txplInfo.texCount = (uint)desc.texMetadatas.Count;
-            txplInfo.spriteCount = (uint)sprites.Length;
+            txplInfo.texCount = (uint)desc.texMetadatas.Length;
+            txplInfo.spriteCount = (uint)desc.sprites.Length;
             outStream.Write(SpanUtil.AsReadOnlyBytes(ref txplInfo));
 
-            for (int i = 0; i < sprites.Length; i++)
+            for (int i = 0; i < desc.sprites.Length; i++)
             {
-                outStream.Write(SpanUtil.AsReadOnlyBytes(ref sprites[i]));
+                outStream.Write(SpanUtil.AsReadOnlyBytes(ref desc.sprites[i]));
             }
 
             var encoder = new BcEncoder();
@@ -81,7 +79,7 @@ namespace ShinDataUtil.Compression
             lastTexInfo.offset = (uint)outStream.Position;
             lastTexInfo.size = 0;
 
-            outStream.Seek(TXPL.Header.HeaderSize + desc.texMetadatas.Count * TXPL.TexData.SelfSize, SeekOrigin.Begin);
+            outStream.Seek(TXPL.Header.HeaderSize + desc.texMetadatas.Length * TXPL.TexData.SelfSize, SeekOrigin.Begin);
             outStream.Write(SpanUtil.AsReadOnlyBytes(ref lastTexInfo));
 
             outStream.Close();

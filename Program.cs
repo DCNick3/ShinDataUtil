@@ -514,14 +514,14 @@ namespace ShinDataUtil
 
             if (args.Length < 2)
             {
-                Console.Error.WriteLine("Usage: ShinDataUtil tex-encode [inpng] [outtex] [--format] [--lzlr]");
-                Console.Error.WriteLine("--lzlr     compress output with LZLR");
-                Console.Error.WriteLine("--format   specify out texture format");
+                Console.Error.WriteLine( "Usage: ShinDataUtil tex-encode [inpng] [outtex] [--format] [--lzlr]");
+                Console.Error.WriteLine( "--lzlr     compress output with LZLR");
+                Console.Error.WriteLine( "--format   specify out texture format");
                 Console.Error.WriteLine($"           default: {format}");
-                Console.Error.WriteLine("           available formats:");
+                Console.Error.WriteLine( "           available formats:");
                 foreach (var fmt in NVNTexture.GetAvailableFormats())
                 {
-                Console.Error.WriteLine($"           {(uint)fmt}  {fmt}");
+                Console.Error.WriteLine($"           {fmt}");
                 }
                 
                 return 1;
@@ -532,8 +532,13 @@ namespace ShinDataUtil
 
             if (args.Contains("--format"))
             {
-                Int32.TryParse(args[args.IndexOf("--format") + 1], out var fmt);
-                format = (NVNTexFormat)fmt;
+                if(!Enum.TryParse(typeof(NVNTexFormat), args[args.IndexOf("--format") + 1], out var fmt))
+                {
+                    Console.Error.WriteLine("wrong format");
+                    return 1;
+                }
+
+                format = (NVNTexFormat)(fmt??NVNTexFormat.NVN_FORMAT_NONE);
             }
 
             if (!NVNTexture.GetAvailableFormats().Contains(format))

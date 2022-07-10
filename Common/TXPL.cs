@@ -58,39 +58,6 @@ namespace ShinDataUtil.Common
             public ushort height { get; set; }
 
             public static uint SelfSize => sizeof(ushort) * 6;
-
-            public Sprite(SpriteJson sprite)
-            {
-                layer = sprite.layer;
-                this.texNum = sprite.texNum;
-                width = sprite.width;
-                height = sprite.height;
-                x = sprite.x;
-                y = sprite.y;
-            }
-        }
-
-        public struct SpriteJson
-        {
-            public int index { get; set; }
-            public ushort layer { get; set; }
-            [JsonIgnore]
-            public ushort texNum { get; set; }
-            public ushort x { get; set; }
-            public ushort y { get; set; }
-            public ushort width { get; set; }
-            public ushort height { get; set; }
-
-            public SpriteJson(Sprite sprite, int index)
-            {
-                this.index = index;
-                layer = sprite.layer;
-                texNum = sprite.texNum;
-                width = sprite.width;
-                height = sprite.height; 
-                x = sprite.x;
-                y = sprite.y;
-            }
         }
 
         public struct TexMetadata
@@ -109,40 +76,25 @@ namespace ShinDataUtil.Common
         {
             public uint texWidth { get; set; }
             public uint texHeight { get; set; }
-            public List<TexMetadata> texMetadatas { get; set; }
-            public List<SpriteJson[]> sprites { get; set; }
+            public TexMetadata[] texMetadatas { get; set; }
+            public Sprite[] sprites { get; set; }
 
-            public Description() {}
+            [JsonConstructor]
+            public Description(uint texWidth, uint texHeight, TexMetadata[] texMetadatas, Sprite[] sprites) {
+                this.texWidth = texWidth;
+                this.texHeight = texHeight;
+
+                this.sprites = sprites;
+                this.texMetadatas = texMetadatas;
+            }
 
             public Description(uint texWidth, uint texHeight, TexHeader[] textures, Sprite[] sprites)
             {
                 this.texWidth = texWidth;
                 this.texHeight = texHeight;
 
-                this.sprites = new List<SpriteJson[]>();
-                texMetadatas = new List<TexMetadata>();
-
-                // Add index to sprites just to be sure, if they will be shuffled
-                var jsonSprites = sprites.Select((x, i) => new SpriteJson(x, i));
-                foreach (var (index, tex) in textures.Select((x, i) => (i, x)))
-                {
-                    var metadata = new TexMetadata(tex.Format, tex.Levels);
-                    texMetadatas.Add(metadata);
-                    var texSprites = jsonSprites.Where((sprite) => sprite.texNum == index);
-                    this.sprites.Add(texSprites.ToArray());
-                }
-            }
-
-            public Sprite[] GetSprites()
-            {
-                // Read sprites from json and sort them by index field, then convert to "binary" sprite struct
-                var spritesJsonFlatten = new List<TXPL.SpriteJson>();
-                foreach (var (index, texSprites) in this.sprites.Select((x, i) => (i, x)))
-                {
-                    var range = texSprites.Select(x => { x.texNum = (ushort)index; return x; });
-                    spritesJsonFlatten.AddRange(range);
-                }
-                return spritesJsonFlatten.OrderBy(x => x.index).Select(x => new TXPL.Sprite(x)).ToArray();
+                this.sprites = sprites;
+                texMetadatas = textures.Select(x => new TexMetadata(x.Format, x.Levels)).ToArray();
             }
         }
     }
