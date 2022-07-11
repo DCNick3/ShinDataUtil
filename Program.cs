@@ -12,6 +12,8 @@ using ShinDataUtil.Compression.Scenario;
 using ShinDataUtil.Decompression;
 using ShinDataUtil.Decompression.Scenario;
 using ShinDataUtil.Scenario;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace ShinDataUtil
 {
@@ -441,6 +443,51 @@ namespace ShinDataUtil
             return 0;
         }
 
+        private static int LZLRDecompress(ReadOnlySpan<string> args)
+        {
+            if (args.Length != 2)
+            {
+                Console.Error.WriteLine("Usage: ShinDataUtil lzlr-decompress [infile] [outfile]");
+                return 1;
+            }
+
+            var infile = args[0];
+            var outfile = args[1];
+
+            var inData = File.ReadAllBytes(infile);
+
+            var decompressor = new ShinLZLRDecompressor();
+
+            var outData = decompressor.Decompress(inData);
+
+            File.WriteAllBytes(outfile, outData.ToArray());
+
+            return 0;
+        }
+
+
+        private static int LZLRCompress(ReadOnlySpan<string> args)
+        {
+            if (args.Length != 2)
+            {
+                Console.Error.WriteLine("Usage: ShinDataUtil lzlr-compress [infile] [outfile]");
+                return 1;
+            }
+
+            var infile = args[0];
+            var outfile = args[1];
+
+            var inData = File.ReadAllBytes(infile);
+
+            var compressor = new ShinLZLRCompressor();
+
+            var outData = compressor.Compress(inData);
+
+            File.WriteAllBytes(outfile, outData.ToArray());
+
+            return 0;
+        }
+
         private static int TexDecode(ReadOnlySpan<string> args)
         {
             if (args.Length != 2)
@@ -454,10 +501,115 @@ namespace ShinDataUtil
 
             var intexData = File.ReadAllBytes(intex);
 
-            var image = DungeonTexDecoder.DecodeTex(intexData);
+            var image = DungeonTexDecoder.DecodeTex(intexData, true);
             
             FastPngEncoder.WritePngToFile(outpng, image);
             
+            return 0;
+        }
+
+        private static int TexEncode(ReadOnlySpan<string> args)
+        {
+            var format = NVNTexFormat.NVN_FORMAT_BPTC_UNORM;
+
+            if (args.Length < 2)
+            {
+                Console.Error.WriteLine( "Usage: ShinDataUtil tex-encode [inpng] [outtex] [--format] [--lzlr]");
+                Console.Error.WriteLine( "--lzlr     compress output with LZLR");
+                Console.Error.WriteLine( "--format   specify out texture format");
+                Console.Error.WriteLine($"           default: {format}");
+                Console.Error.WriteLine( "           available formats:");
+                foreach (var fmt in NVNTexture.GetAvailableFormats())
+                {
+                Console.Error.WriteLine($"           {fmt}");
+                }
+                
+                return 1;
+            }
+
+            var inpng = args[0];
+            var outtex = args[1];
+
+            if (args.Contains("--format"))
+            {
+                if(!Enum.TryParse(typeof(NVNTexFormat), args[args.IndexOf("--format") + 1], out var fmt))
+                {
+                    Console.Error.WriteLine("wrong format");
+                    return 1;
+                }
+
+                format = (NVNTexFormat)(fmt??NVNTexFormat.NVN_FORMAT_NONE);
+            }
+
+            if (!NVNTexture.GetAvailableFormats().Contains(format))
+            {
+                Console.Error.WriteLine("specified format not supported");
+                return 1;
+            }
+
+            var inpngData = Image.Load<Rgba32>(inpng);
+
+            var texData = DungeonTexEncoder.Encode(inpngData, format, 1);
+
+            if (args.Contains("--lzlr"))
+            {
+                var compressor = new ShinLZLRCompressor();
+                texData = compressor.Compress(texData);
+            }
+
+            File.WriteAllBytes(outtex, texData.ToArray());
+
+            return 0;
+        }
+
+        private static int TXPLExtract(ReadOnlySpan<string> args)
+        {
+            if (args.Length < 2)
+            {
+                Console.Error.WriteLine("Usage: ShinDataUtil txpl-extract [txl|tlz file] [outfolder] [--save-sprites]");
+                Console.Error.WriteLine("--save-sprites     save sprites to png files");
+                return 1;
+            }
+
+            var inTXPL = args[0];
+            var outname = args[1];
+
+            bool extractSprites = false;
+            if (args.Contains("--save-sprites"))
+            {
+                extractSprites = true;
+            }
+
+            if (Directory.Exists(outname))
+                Directory.Delete(outname, true);
+            Directory.CreateDirectory(outname);
+
+            ShinTexpoolExtractor.Extract(inTXPL, outname, extractSprites);
+
+            return 0;
+        }
+
+        private static int TXPLBuild(ReadOnlySpan<string> args)
+        {
+            if (args.Length < 2)
+            {
+                Console.Error.WriteLine("Usage: ShinDataUtil txpl-build [infolder] [outfile] [--lzlr]");
+                Console.Error.WriteLine("--lzlr     compress output with LZLR");
+                return 1;
+            }
+
+            var indir = args[0];
+            var outname = args[1];
+
+            ShinTexpoolBuilder.BuildFromDirectory(indir, outname);
+
+            if (args.Contains("--lzlr"))
+            {
+                var data = File.ReadAllBytes(outname);
+                var compressor = new ShinLZLRCompressor();
+                File.WriteAllBytes(outname, compressor.Compress(data).ToArray());
+            }
+
             return 0;
         }
 
@@ -551,7 +703,12 @@ namespace ShinDataUtil
             actions.AddAction("scenario-build", ScenarioBuild);
             actions.AddAction("rom-replace-file", RomReplaceFile);
             actions.AddAction("rom-build", RomBuild);
+            actions.AddAction("lzlr-decompress", LZLRDecompress);
+            actions.AddAction("lzlr-compress", LZLRCompress);
             actions.AddAction("tex-decode", TexDecode);
+            actions.AddAction("tex-encode", TexEncode);
+            actions.AddAction("txpl-extract", TXPLExtract);
+            actions.AddAction("txpl-build", TXPLBuild);
 
             if (args.Length < 1 || args[0] == "help" || args[0] == "-h" || args[0] == "--help")
             {

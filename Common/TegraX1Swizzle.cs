@@ -37,22 +37,34 @@ namespace ShinDataUtil
 
             return mipMapSizes;
         }*/
-
-        public static void DeswizzleTexture(int width, int height, ReadOnlySpan<byte> sourceData,
+        public static void SwizzleTexture(int width, int height, NVNTexFormat format, ReadOnlySpan<byte> sourceData,
             Span<byte> targetData, bool linearTileMode = false)
         {
-            var blkHeight = 4; //STGenericTexture.GetBlockHeight(Format);
-            var blockHeight = GetBlockHeight(DivRoundUp(height, blkHeight));
-            var blockHeightLog2 = Convert.ToString(blockHeight, 2).Length - 1;
-            DeswizzleTexture(width, height, sourceData, targetData, blockHeightLog2, linearTileMode);
+            SwizzleTex(width, height, format, sourceData, targetData, linearTileMode, true);
         }
 
-        public static void DeswizzleTexture(int width, int height, ReadOnlySpan<byte> sourceData,
-            Span<byte> targetData, int blockHeightLog2, bool linearTileMode = false)
+        public static void DeswizzleTexture(int width, int height, NVNTexFormat format, ReadOnlySpan<byte> sourceData,
+            Span<byte> targetData, bool linearTileMode = false)
         {
-            var bpp = 16; //STGenericTexture.GetBytesPerPixel(Format);
-            var blkWidth = 4; //STGenericTexture.GetBlockWidth(Format);
-            var blkHeight = 4; //STGenericTexture.GetBlockHeight(Format);
+            SwizzleTex(width, height, format, sourceData, targetData, linearTileMode, false);
+        }
+
+
+        public static void SwizzleTex(int width, int height, NVNTexFormat format, ReadOnlySpan<byte> sourceData,
+            Span<byte> targetData, bool linearTileMode = false, bool toSwizzle = false)
+        {
+            var blkHeight = NVNTexture.GetBlockHeight(format);
+            var blockHeight = GetBlockHeight(DivRoundUp(height, blkHeight));
+            var blockHeightLog2 = Convert.ToString(blockHeight, 2).Length - 1;
+            SwizzleTex(width, height, format, sourceData, targetData, blockHeightLog2, linearTileMode, toSwizzle);
+        }
+
+        public static void SwizzleTex(int width, int height, NVNTexFormat format, ReadOnlySpan<byte> sourceData,
+            Span<byte> targetData, int blockHeightLog2, bool linearTileMode = false, bool toSwizzle = false)
+        {
+            var bpp = NVNTexture.GetBytesPerPixel(format);
+            var blkWidth = NVNTexture.GetBlockWidth(format);
+            var blkHeight = NVNTexture.GetBlockHeight(format);
             var blockHeight = GetBlockHeight(DivRoundUp(height, blkHeight));
 
             var mipCount = 1;
@@ -102,10 +114,10 @@ namespace ShinDataUtil
                 surfaceSize += Pitch * RoundUp(heightAligned,
                     Math.Max(1, blockHeight >> blockHeightShift) * 8);
 
-                byte[] result = Deswizzle(mipWidth, mipHeight, blkWidth, blkHeight, bpp, tileMode,
-                    Math.Max(0, blockHeightLog2 - blockHeightShift), data);
+                byte[] result = SwizzleInternal(mipWidth, mipHeight, blkWidth, blkHeight, bpp, tileMode,
+                    Math.Max(0, blockHeightLog2 - blockHeightShift), data, toSwizzle);
                 //Create a copy and use that to remove unneeded data
-                Trace.Assert(targetData.Length == size);
+                //Trace.Assert(targetData.Length == size);
                 
                 result.AsSpan().Slice(0, size).CopyTo(targetData);
                 return;
@@ -205,16 +217,6 @@ namespace ShinDataUtil
                 }
             }
             return resultBuffer;
-        }
-
-        public static byte[] Deswizzle(int width, int height, int blkWidth, int blkHeight, int bpp, int tileMode, int sizeRange, ReadOnlySpan<byte> data)
-        {
-            return SwizzleInternal(width, height, blkWidth, blkHeight, bpp, tileMode, sizeRange, data, false);
-        }
-
-        public static byte[] Swizzle(int width, int height, int blkWidth, int blkHeight, int bpp, int tileMode, int sizeRange, ReadOnlySpan<byte> data)
-        {
-            return SwizzleInternal(width, height, blkWidth, blkHeight, bpp, tileMode, sizeRange, data, true);
         }
 
         static int GetAddrBlockLinear(int x, int y, int width, int bytesPerPixel, int baseAddress, int blockHeight)
