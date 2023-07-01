@@ -37,7 +37,7 @@ namespace ShinDataUtil.Scenario
 
             public Element(Operation operation)
             {
-                Trace.Assert((int)operation <= 24);
+                Trace.Assert((int)operation <= 26);
                 this.Operation = operation;
                 NumberSpec = null;
             }
@@ -76,7 +76,9 @@ namespace ShinDataUtil.Scenario
             NotEqualToZero = 21,
             BothNotEqualToZero = 22,
             AnyNotEqualToZero = 23,
-            SelectTwo = 24
+            SelectTwo = 24,
+            MultiplyReal = 25,
+            DivideReal = 26,
             /* Do we really need more? */
         }
     }

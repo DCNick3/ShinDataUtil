@@ -28,33 +28,37 @@ namespace ShinDataUtil.Scenario
                 "rpn" => OpcodeEncodingElement.PostfixNotationExpression, 
                 "mi" => OpcodeEncodingElement.MessageId,
                 "bo" => OpcodeEncodingElement.BinaryOperationArgument,
+                "uo" => OpcodeEncodingElement.UnaryOperationArgument,
                 _ => throw new ArgumentException()
             };
         }
 
         private const string Encodings = @"
 EXIT=b,n!
+uo=uo
 bo=bo
 exp=a,rpn
 jc=b,n,n,j
 j=j!
-call=j
-ret=!
+gosub=j
+retsub=!
 jt=n,jj
 rnd=a,n,n
 push=nn
 pop=aa
+call=j,nn
+return=!
 
 SGET=a,n
 SSET=n,n
 WAIT=b,n
-MSGINIT=n
+MSGINIT=n,n,n
 MSGSET=mi,b,n,lstr
 MSGWAIT=n
 MSGSIGNAL=
 MSGSYNC=n,n
 MSGCLOSE=b
-MSGFACE=b
+MSGFACE=
 LOGSET=lstr
 SELECT=s,s,a,n,str,strstr
 WIPE=n,n,n,bmn
@@ -70,6 +74,7 @@ SESTOPALL=n
 SEVOL=n,n,n
 SEPAN=n,n,n
 SEWAIT=n,n
+SEONCE=n,n,n,n,n
 VOICEPLAY=str,n,n
 VOICEWAIT=n
 SAVEINFO=n,str
@@ -94,6 +99,8 @@ KAKERAGET=n,nn
 QUIZ=a,n,n,n
 FAKESELECT=
 UNLOCK=b,nn
+KGET=s,n
+KSET=n,n
 DEBUGOUT=str,nn";
         
         private static readonly HashSet<Opcode> NeedsStringFixup = new HashSet<Opcode>

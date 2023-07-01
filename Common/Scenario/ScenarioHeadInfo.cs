@@ -10,7 +10,7 @@ namespace ShinDataUtil.Scenario
     /// </summary>
     public class ScenarioHeadInfo
     {
-        public ScenarioHeadInfo(ImmutableArray<string> section36, ImmutableArray<(string, ushort)> section40, ImmutableArray<(string, string, ushort)> section44, ImmutableArray<(string, string, ushort)> section48, ImmutableArray<string> section52, ImmutableArray<(string, int)> section56, ImmutableArray<(string, byte[])> section60, ImmutableArray<(string, ushort[])> section64, ImmutableArray<(ushort, ushort, ushort)> section68, ImmutableArray<(ushort, string)> section72, ImmutableArray<(ushort, ushort, ushort, ushort, ushort?, string?)> section76)
+        public ScenarioHeadInfo(ImmutableArray<string> section36, ImmutableArray<(string, ushort)> section40, ImmutableArray<(string, string, ushort)> section44, ImmutableArray<(string, string, ushort)> section48, ImmutableArray<string> section52, ImmutableArray<(string, int)> section56, ImmutableArray<(string, byte[])> section60, ImmutableArray<(string, ushort[])> section64, ImmutableArray<(ushort, ushort, ushort)> section68, ImmutableArray<(ushort, ushort, string)> section72, ImmutableArray<(ushort, ushort, ushort, ushort, ushort?, string?)> section76)
         {
             Section36 = section36;
             Section40 = section40;
@@ -34,7 +34,7 @@ namespace ShinDataUtil.Scenario
         public ImmutableArray<(string, byte[])> Section60 { get; }
         public ImmutableArray<(string, ushort[])> Section64 { get; }
         public ImmutableArray<(ushort, ushort, ushort)> Section68 { get; }
-        public ImmutableArray<(ushort, string)> Section72 { get; }
+        public ImmutableArray<(ushort, ushort, string)> Section72 { get; }
         public ImmutableArray<(ushort, ushort, ushort, ushort, ushort?, string?)> Section76 { get; }
 
         public void SerializeTo(TextWriter destination) => 

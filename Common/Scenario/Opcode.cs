@@ -10,6 +10,10 @@ namespace ShinDataUtil.Scenario
         // Operations (do not yield to game loop)
         
         /// <summary>
+        /// Unary operation (one argument...)
+        /// </summary>
+        uo = 64,
+        /// <summary>
         /// Binary operation (two arguments...)
         /// </summary>
         bo = 65,
@@ -26,13 +30,14 @@ namespace ShinDataUtil.Scenario
         /// </summary>
         j = 71,
         /// <summary>
-        /// Function call
+        /// Subroutine call
         /// </summary>
-        call = 72,
+        gosub = 72,
         /// <summary>
-        /// Function return
+        /// Subroutine return
+        /// Paired with gosub
         /// </summary>
-        ret = 73,
+        retsub = 73,
         /// <summary>
         /// Follow a jump table
         /// </summary>
@@ -51,6 +56,17 @@ namespace ShinDataUtil.Scenario
         /// Pop several values from CALL stack
         /// </summary>
         pop = 78,
+        
+        /// <summary>
+        /// Function call
+        /// A newer variant of gosub, with a different encoding. Allows passing arguments.
+        /// </summary>
+        call = 79,
+        /// <summary>
+        /// Return from function call
+        /// Paired with call
+        /// </summary>
+        @return = 80,
         
         // Commands, yield to game loop
         SGET = 129,
@@ -107,6 +123,8 @@ namespace ShinDataUtil.Scenario
         QUIZ = 215,
         FAKESELECT = 216,        // doc'ed
         UNLOCK = 217,
+        KGET = 218,
+        KSET = 219,
         DEBUGOUT = 255
     }
 }

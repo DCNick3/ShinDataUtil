@@ -176,8 +176,9 @@ namespace ShinDataUtil.Decompression.Scenario
             for (var i = 0; i < seenAddrMask.Length; i++)
                 if (!seenAddrMask[i])
                     nonSeenAddresses.Add(i + initialOffset);
-                
-            Trace.Assert(nonSeenAddresses.Count < 16);
+
+            // TODO: this is probably bad
+            // Trace.Assert(nonSeenAddresses.Count < 16);
 
             return reader._disassemblyViewBuilder.Build();
         }
@@ -249,6 +250,12 @@ namespace ShinDataUtil.Decompression.Scenario
                         return new BinaryOperationArgument(tempByte, FeedShort(), FeedNumber(), FeedNumber());
                     else 
                         return new BinaryOperationArgument(tempByte, FeedShort(), FeedNumber());
+                case OpcodeEncodingElement.UnaryOperationArgument:
+                    tempByte = FeedByte();
+                    if ((tempByte & 0x80) != 0)
+                        return new UnaryOperationArgument(tempByte, FeedShort(), FeedNumber());
+                    else 
+                        return new UnaryOperationArgument(tempByte, FeedShort());
                 default:
                     throw new ArgumentOutOfRangeException(nameof(element), element, null);
             }

@@ -64,6 +64,20 @@ namespace ShinDataUtil.Decompression.Scenario
             } + $" {FormatNumber(NumberSpec.FromAddress(binaryOperationArgument.DestinationAddress))}, " + FormatNumber(binaryOperationArgument.Argument1) + ", " + FormatNumber(binaryOperationArgument.Argument2);
         }
 
+        private string FormatUnaryOperation(Instruction instruction)
+        {
+            UnaryOperationArgument arg = instruction.Data[0];
+
+            return arg.Type switch
+            {
+                UnaryOperationArgument.Operation.Zero => "zero",
+                UnaryOperationArgument.Operation.XorFFFF => "xorffff",
+                UnaryOperationArgument.Operation.Negate => "neg",
+                UnaryOperationArgument.Operation.Not => "not",
+                _ => throw new ArgumentOutOfRangeException(),
+            } + $" {FormatNumber(NumberSpec.FromAddress(arg.DestinationAddress))}, " + FormatNumber(arg.Argument1);
+        }
+
         private string FormatConditionalJump(Instruction instruction)
         {
             var type = (byte) instruction.Data[0];
@@ -121,6 +135,8 @@ namespace ShinDataUtil.Decompression.Scenario
                         PostfixExpression.Operation.BitwiseXor => "^",
                         PostfixExpression.Operation.LeftShift => "<<",
                         PostfixExpression.Operation.RightShift => ">>",
+                        PostfixExpression.Operation.MultiplyReal => ".*",
+                        PostfixExpression.Operation.DivideReal => "./",
                         _ => throw new ArgumentException(),
                     };
                     sb.Append($"{c} ");
@@ -163,6 +179,8 @@ namespace ShinDataUtil.Decompression.Scenario
         {
             if (instruction.Opcode == Opcode.bo)
                 return FormatBinaryOperation(instruction);
+            if (instruction.Opcode == Opcode.uo)
+                return FormatUnaryOperation(instruction);
             if (instruction.Opcode == Opcode.jc)
                 return FormatConditionalJump(instruction);
             
@@ -194,11 +212,13 @@ namespace ShinDataUtil.Decompression.Scenario
                     continue;
                 var prefix = instr.Opcode switch
                 {
+                    Opcode.gosub => "SUB_",
                     Opcode.call => "FUN_",
                     _ => "LAB_",
                 };
                 if (creator._labels.TryGetValue(jumpOffset, out var lab))
-                    if (lab.StartsWith("FUN_"))
+                    // TODO: why are we doing this, again?
+                    if (lab.StartsWith("FUN_") || lab.StartsWith("SUB_"))
                         continue;
                 creator._labels[jumpOffset] = $"{prefix}{jumpOffset:x6}";
             }

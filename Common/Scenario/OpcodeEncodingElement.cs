@@ -20,6 +20,7 @@ namespace ShinDataUtil.Scenario
         
         MessageId,
 
-        BinaryOperationArgument /* It's very odd anyway */
+        BinaryOperationArgument, /* It's very odd anyway */
+        UnaryOperationArgument, /* It is also quite weird */
     }
 }

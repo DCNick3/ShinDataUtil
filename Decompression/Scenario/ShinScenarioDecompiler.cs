@@ -105,7 +105,7 @@ namespace ShinDataUtil.Decompression.Scenario
                     var s2 = ReadString(ref data);
                     var us = Read<ushort>(ref data);
 
-                    Trace.Assert(us == 0xffff);
+                    // Trace.Assert(us == 0xffff);
 
                     r.Add((s1, s2, us));
                 }
@@ -196,19 +196,20 @@ namespace ShinDataUtil.Decompression.Scenario
             }
         }
 
-        private static List<(ushort, string)> Handle72(ReadOnlySpan<byte> data)
+        private static List<(ushort, ushort, string)> Handle72(ReadOnlySpan<byte> data)
         {
             checked
             {
-                var r = new List<(ushort, string)>();
+                var r = new List<(ushort, ushort, string)>();
                 var header = MemoryMarshal.Read<ScenarioSectionHeader>(data);
                 data = data.Slice(sizeof(ScenarioSectionHeader), (int) header.byteSize);
                 for (var i = 0; i < header.elementCount; i++)
                 {
-                    var us = Read<ushort>(ref data);
+                    var us1 = Read<ushort>(ref data);
+                    var us2 = Read<ushort>(ref data);
                     var s = ReadString(ref data);
 
-                    r.Add((us, s));
+                    r.Add((us1, us2, s));
                 }
 
                 return r;
@@ -380,7 +381,7 @@ namespace ShinDataUtil.Decompression.Scenario
                     entryLabels[instr.Data[0]] = "ENTRY_TEST_MODE";
                 }
 
-                entryLabels[0x016e33] = "FUN_WIPE";
+                // entryLabels[0x016e33] = "FUN_WIPE";
                 
                 // TODO: make a general way to declare transformation applied to the "stock" scenario
                 

@@ -129,7 +129,8 @@ namespace ShinDataUtil.Compression.Scenario
             var offset72 = WriteGenericSection(info.Section72, (s, bw1) =>
             {
                 bw1.Write(s.Item1);
-                WriteString(s.Item2, bw1);
+                bw1.Write(s.Item2);
+                WriteString(s.Item3, bw1);
             }, bw);
             var offset76 = WriteGenericSection(info.Section76, (s, bw1) =>
             {
