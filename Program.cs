@@ -274,7 +274,7 @@ namespace ShinDataUtil
 
         static int RemuxSound(ReadOnlyMemory<byte> nxadata, string nxaname, string outname)
         {
-            using var outstream = File.OpenWrite(outname);
+            using var outstream = File.Create(outname);
 
             ShinOpusRemuxer.Remux(nxadata.Span, outstream, nxaname);
 
