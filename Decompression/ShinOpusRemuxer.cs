@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace ShinDataUtil.Decompression
 {
@@ -201,7 +202,9 @@ namespace ShinDataUtil.Decompression
             bw.Write(0x736761547375704f); // OpusTags
             
             var vendorString = "ShinDataUtil remuxer";
-            bw.Write(vendorString); // Vendor string
+            var vendorStringBytes = Encoding.UTF8.GetBytes(vendorString);
+            bw.Write(vendorStringBytes.Length); // Vendor string
+            bw.Write(vendorStringBytes);
             
             bw.Write(0); // User comment list length
             bw.Flush();
@@ -246,6 +249,7 @@ namespace ShinDataUtil.Decompression
 #pragma warning restore 649
         }
 
+        [StructLayout(LayoutKind.Sequential, Pack=1)]
         private struct OpusIdentificationHeader
         {
             public ulong magic;
