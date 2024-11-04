@@ -62,7 +62,7 @@ namespace ShinDataUtil
         public static void SwizzleTex(int width, int height, NVNTexFormat format, ReadOnlySpan<byte> sourceData,
             Span<byte> targetData, int blockHeightLog2, bool linearTileMode = false, bool toSwizzle = false)
         {
-            var bpp = NVNTexture.GetBytesPerPixel(format);
+            var bpp = NVNTexture.GetBytesPerBlock(format);
             var blkWidth = NVNTexture.GetBlockWidth(format);
             var blkHeight = NVNTexture.GetBlockHeight(format);
             var blockHeight = GetBlockHeight(DivRoundUp(height, blkHeight));

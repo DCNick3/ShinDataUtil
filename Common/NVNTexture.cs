@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -191,7 +192,7 @@ namespace ShinDataUtil
     public class NVNTexture
     {
 
-        public static int GetBytesPerPixel(NVNTexFormat Format)
+        public static int GetBytesPerBlock(NVNTexFormat Format)
         {
             return FormatTable[Format].BytesPerPixel;
         }
@@ -204,6 +205,15 @@ namespace ShinDataUtil
         public static int GetBlockWidth(NVNTexFormat Format)
         {
             return FormatTable[Format].BlockWidth;
+        }
+
+        public static int GetByteSize(NVNTexFormat Format, int width, int height)
+        {
+            var blockWidth = GetBlockWidth(Format);
+            var blockHeight = GetBlockHeight(Format);
+            Trace.Assert(width % blockWidth == 0);
+            Trace.Assert(width % blockHeight == 0);
+            return width / blockWidth * height / blockHeight * GetBytesPerBlock(Format);
         }
 
         public static int GetBlockDepth(NVNTexFormat Format)
