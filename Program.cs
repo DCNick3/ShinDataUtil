@@ -367,14 +367,16 @@ namespace ShinDataUtil
                 Dither = false,
                 LosslessAlpha = false
             };
+            var scale = 4096u;
             while (args.Length > 0 && args[0].StartsWith("--"))
             {
                 var opt = args[0];
                 args = args[1..];
+                string v;
                 switch (opt)
                 {
                     case "--origin":
-                        var v = args[0];
+                        v = args[0];
                         args = args[1..];
                         if (int.TryParse(v, out var i))
                             origin = (ShinPictureEncoder.Origin) i;
@@ -391,6 +393,12 @@ namespace ShinDataUtil
                     case "--lossless-alpha":
                         compressionConfig.LosslessAlpha = true;
                         break;
+                    case "--scale":
+                        v = args[0];
+                        args = args[1..];
+                        if (!uint.TryParse(v, out scale))
+                            throw new ArgumentException("Unknown scale value: " + v);
+                        break;
                     default:
                         throw new ArgumentException($"Unknown option: {opt}");
                 }
@@ -398,7 +406,7 @@ namespace ShinDataUtil
             
             if (args.Length < 2)
             {
-                Console.Error.WriteLine("Usage: ShinDataUtil pic-encode {--origin [origin]} [srcpng] [outfile]");
+                Console.Error.WriteLine("Usage: ShinDataUtil pic-encode {--origin [origin]} {--quantize} {--dither} {--lossless-alpha} {--scale [scale*4096]} [srcpng] [outfile]");
                 return 1;
             }
 
@@ -412,7 +420,7 @@ namespace ShinDataUtil
             var rnd = new Random((int)Environment.TickCount64 ^ Environment.ProcessId);
             var pictureId = (uint)rnd.Next();
             
-            ShinPictureEncoder.EncodePicture(outpic, image, image.Width, image.Height, pictureId, origin, compressionConfig);
+            ShinPictureEncoder.EncodePicture(outpic, image, image.Width, image.Height, pictureId, origin, scale, compressionConfig);
 
             return 0;
         }
@@ -459,7 +467,7 @@ namespace ShinDataUtil
             using var image = PngDecoder.Instance.Decode<Rgba32>(new DecoderOptions(), fs);
 
             ShinPictureEncoder.EncodePicture(outpic, image, image.Width, image.Height, 0, 
-                ShinPictureEncoder.Origin.Bottom, compressionConfig);
+                ShinPictureEncoder.Origin.Bottom, 4096, compressionConfig);
             
             
             var (decodedImage, size, _) = ShinPictureDecoder.DecodePicture(outpic.GetBuffer()[..(int)outpic.Length]);

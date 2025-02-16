@@ -42,7 +42,7 @@ namespace ShinDataUtil.Compression
         }
 
         public static unsafe void EncodePicture(Stream outpic, Image<Rgba32> image, 
-            int effectiveWidth, int effectiveHeight, uint pictureId, Origin origin, ShinTextureCompress.FragmentCompressionConfig fragmentCompressionConfig)
+            int effectiveWidth, int effectiveHeight, uint pictureId, Origin origin, uint scale, ShinTextureCompress.FragmentCompressionConfig fragmentCompressionConfig)
         {
             Trace.Assert(effectiveWidth > 0 && effectiveHeight > 0);
 
@@ -267,13 +267,14 @@ namespace ShinDataUtil.Compression
                 Origin.BottomLeft => (0, effectiveHeight),
                 Origin.Bottom => (effectiveWidth / 2, effectiveHeight),
                 Origin.BottomRight => (effectiveWidth, effectiveHeight),
+                Origin.Credits => (effectiveWidth / 2, effectiveHeight - 540),
                 _ => throw new ArgumentOutOfRangeException(nameof(origin), origin, null)
             };
             
             var header = new PicHeader
             {
                 magic = 0x34434950,
-                version = 2,
+                version = 3,
                 // fileSize!
                 effectiveHeight = checked((ushort)effectiveHeight),
                 effectiveWidth = checked((ushort)effectiveWidth),
@@ -281,7 +282,8 @@ namespace ShinDataUtil.Compression
                 originX = checked((ushort)originX),
                 originY = checked((ushort)originY),
                 field20 = 1, // this value is set in __most__ pictures, excluding __some__ from /picture/e/ directory
-                pictureId = pictureId
+                pictureId = pictureId,
+                scale = scale,
             };
 
             var dataOffset = sizeof(PicHeader) + fragments.Length * sizeof(PicHeaderFragmentEntry);
@@ -333,7 +335,13 @@ namespace ShinDataUtil.Compression
             Right = 6,
             BottomLeft = 7,
             Bottom = 8,
-            BottomRight = 9
+            BottomRight = 9,
+            
+            // umineko credits
+            // x is at the center
+            // y is at height-540
+            // (center of the bottom part)
+            Credits = 10,
         }
     }
 }

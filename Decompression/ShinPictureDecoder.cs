@@ -30,12 +30,14 @@ namespace ShinDataUtil.Decompression
                 picture[Marshal.SizeOf<PicHeader>()..]);
 
             Trace.Assert(header.magic == 0x34434950);
-            Trace.Assert(header.version == 2);
+            Trace.Assert(header.version == 3);
             Trace.Assert(header.fileSize == picture.Length);
             Trace.Assert(header.originX == header.effectiveWidth / 2);
             Trace.Assert(header.originY == header.effectiveHeight 
                          || header.originY == header.effectiveHeight / 2
-                         || header.originY == 0);
+                         || header.originY == 0
+                         || header.originY == header.effectiveHeight - 540 // this is a weird origin used by umineko credits
+            );
             Trace.Assert(header.field20 == 1 || header.field20 == 0);
             
             var entries = new PicHeaderFragmentEntry[header.entryCount];

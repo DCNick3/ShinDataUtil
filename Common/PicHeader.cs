@@ -13,6 +13,8 @@ namespace ShinDataUtil
         public uint field20;
         public uint entryCount;
         public uint pictureId;
+        /// Scale in units of 1/4096
+        public uint scale;
 #pragma warning restore 649
     }
 }

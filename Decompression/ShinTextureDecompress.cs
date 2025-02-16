@@ -29,7 +29,9 @@ namespace ShinDataUtil.Decompression
                     var v = dictionary[input[i]];
                     if (inputAlpha.Length > 0)
                     {
-                        Debug.Assert(v.A == 255);
+                        // 255 seen in higurashi, 0 seen in umineko
+                        // are they using different authoring tools?
+                        Debug.Assert(v.A == 0);
                         v.A = inputAlpha[i];
                     }
 
