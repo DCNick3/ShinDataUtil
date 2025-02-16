@@ -18,10 +18,10 @@ using ShinDataUtil.Scenario;
 using ShinDataUtil.Util;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SixLabors.Primitives;
 
 namespace ShinDataUtil
 {
@@ -407,7 +407,7 @@ namespace ShinDataUtil
 
             using var outpic = File.Create(outfile);
             using var fs = File.OpenRead(srcpng);
-            using var image = Image.Load<Rgba32>(fs, new PngDecoder());
+            using var image = PngDecoder.Instance.Decode<Rgba32>(new DecoderOptions(), fs);
 
             var rnd = new Random((int)Environment.TickCount64 ^ Environment.ProcessId);
             var pictureId = (uint)rnd.Next();
@@ -456,7 +456,7 @@ namespace ShinDataUtil
 
             using var outpic = new MemoryStream();
             using var fs = File.OpenRead(srcpng);
-            using var image = Image.Load<Rgba32>(fs, new PngDecoder());
+            using var image = PngDecoder.Instance.Decode<Rgba32>(new DecoderOptions(), fs);
 
             ShinPictureEncoder.EncodePicture(outpic, image, image.Width, image.Height, 0, 
                 ShinPictureEncoder.Origin.Bottom, compressionConfig);
@@ -469,8 +469,8 @@ namespace ShinDataUtil
             var mse = 0.0;
             for (var j = 0; j < effectiveHeight; j++)
             {
-                var span1 = image.GetPixelRowSpan(j)[..effectiveWidth];
-                var span2 = decodedImage.GetPixelRowSpan(j)[..effectiveWidth];
+                var span1 = image.DangerousGetPixelRowMemory(j)[..effectiveWidth].Span;
+                var span2 = decodedImage.DangerousGetPixelRowMemory(j)[..effectiveWidth].Span;
                 if (span1.SequenceEqual(span2))
                     continue;
                 for (var i = 0; i < effectiveWidth; i++)

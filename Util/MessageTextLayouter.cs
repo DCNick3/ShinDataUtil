@@ -176,12 +176,12 @@ namespace ShinDataUtil.Util
         {
             if (colorDec < 999)
             {
-                return (uint) (
+                return 
                     0xff000000U
                     | ColorDecimalToByte[colorDec % 10]
-                    | (ColorDecimalToByte[colorDec / 10 % 10] << 8)
-                    | (ColorDecimalToByte[colorDec / 100] << 16)
-                );
+                    | (uint)(ColorDecimalToByte[colorDec / 10 % 10] << 8)
+                    | (uint)(ColorDecimalToByte[colorDec / 100] << 16)
+                ;
             }
 
             return 0xffffffffU;

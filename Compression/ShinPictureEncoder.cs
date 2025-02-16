@@ -14,7 +14,6 @@ using ShinDataUtil.Decompression;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.Primitives;
 using Formatting = Newtonsoft.Json.Formatting;
 
 namespace ShinDataUtil.Compression
@@ -61,7 +60,7 @@ namespace ShinDataUtil.Compression
             
             for (var j = 0; j < effectiveHeight; j++)
             {
-                var row = image.GetPixelRowSpan(j);
+                var row = image.DangerousGetPixelRowMemory(j).Span;
                 for (var i = 0; i < effectiveWidth; i++)
                     if (row[i].A > 0)
                     {
@@ -198,7 +197,7 @@ namespace ShinDataUtil.Compression
                 {
                     var v = image[i, j];
                     if (v.A == 0)
-                        v = Rgba32.Transparent;
+                        v = Color.Transparent;
                     hash = ((hash << 5) + hash) + v.PackedValue;
                 }
 
@@ -207,15 +206,15 @@ namespace ShinDataUtil.Compression
 
             bool CompareFragments(Rectangle a, Rectangle b)
             {
-                a.Intersect(image.Bounds());
-                b.Intersect(image.Bounds());
+                a.Intersect(image.Bounds);
+                b.Intersect(image.Bounds);
                 if (a.Size != b.Size)
                     return false;
                 
                 for (var j = 0; j < a.Height; j++)
                 {
-                    var rowA = image.GetPixelRowSpan(a.Y + j).Slice(a.X, a.Width);
-                    var rowB = image.GetPixelRowSpan(b.Y + j).Slice(b.X, b.Width);
+                    var rowA = image.DangerousGetPixelRowMemory(a.Y + j).Span.Slice(a.X, a.Width);
+                    var rowB = image.DangerousGetPixelRowMemory(b.Y + j).Span.Slice(b.X, b.Width);
                     if (!rowA.SequenceEqual(rowB))
                         return false;
                 }

@@ -57,14 +57,14 @@ namespace NUnitTests
 
             var (imageRedec, (effectiveWidth1, effectiveHeight1), _) = ShinPictureDecoder.DecodePicture(ms.GetBuffer().AsSpan()[..(int)ms.Length]);
             
-            Assert.AreEqual(effectiveWidth1, effectiveWidth);
-            Assert.AreEqual(effectiveHeight1, effectiveHeight);
+            Assert.That(effectiveWidth1, Is.EqualTo(effectiveWidth));
+            Assert.That(effectiveHeight1, Is.EqualTo(effectiveHeight));
 
             var mse = 0.0;
             for (var j = 0; j < effectiveHeight; j++)
             {
-                var span1 = imageCropped.GetPixelRowSpan(j)[..effectiveWidth];
-                var span2 = imageRedec.GetPixelRowSpan(j)[..effectiveWidth];
+                var span1 = imageCropped.DangerousGetPixelRowMemory(j).Span[..effectiveWidth];
+                var span2 = imageRedec.DangerousGetPixelRowMemory(j).Span[..effectiveWidth];
                 if (span1.SequenceEqual(span2))
                     continue;
                 for (var i = 0; i < effectiveWidth; i++)
@@ -74,7 +74,7 @@ namespace NUnitTests
             mse /= effectiveWidth * effectiveHeight;
             
             // MSE not greater than this value. Allows the error to be up to 1 per each pixel per channel
-            Assert.Less(mse, 0.0003 /* 3 * 10 ^ -4, should be quite conservative */);
+            Assert.That(mse, Is.LessThan(0.0003) /* 3 * 10 ^ -4, should be quite conservative */);
         }
         
         [Test]
@@ -101,17 +101,17 @@ namespace NUnitTests
 
             var (imageRedec, (effectiveWidth1, effectiveHeight1), _) = ShinPictureDecoder.DecodePicture(ms.GetBuffer().AsSpan()[..(int)ms.Length]);
             
-            Assert.AreEqual(effectiveWidth1, effectiveWidth);
-            Assert.AreEqual(effectiveHeight1, effectiveHeight);
+            Assert.That(effectiveWidth1, Is.EqualTo(effectiveWidth));
+            Assert.That(effectiveHeight1, Is.EqualTo(effectiveHeight));
 
             for (var j = 0; j < effectiveHeight; j++)
             {
-                var span1 = imageCropped.GetPixelRowSpan(j)[..effectiveWidth];
-                var span2 = imageRedec.GetPixelRowSpan(j)[..effectiveWidth];
+                var span1 = imageCropped.DangerousGetPixelRowMemory(j).Span[..effectiveWidth];
+                var span2 = imageRedec.DangerousGetPixelRowMemory(j).Span[..effectiveWidth];
                 if (span1.SequenceEqual(span2))
                     continue;
                 for (var i = 0; i < effectiveWidth; i++)
-                    Assert.AreEqual(span2[i], span1[i],
+                    Assert.That(span2[i], Is.EqualTo(span1[i]),
                         $"Expected equality of the round-trip decoded images at row {j}, column {i}");
             }
         }

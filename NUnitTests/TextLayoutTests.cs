@@ -37,7 +37,7 @@ namespace NUnitTests
             {
                 var tl = new RebuildingTextLayouter();
                 new MessageTextParser().ParseTo(message, tl);
-                Assert.AreEqual(message, tl.Dump());
+                Assert.That(message, Is.EqualTo(tl.Dump()));
             }
         }
 
@@ -49,7 +49,7 @@ namespace NUnitTests
             foreach (var message in OriginalMessages)
             {
                 parser.ParseTo(message, tl);
-                Assert.AreEqual(message, tl.Dump());
+                Assert.That(message, Is.EqualTo(tl.Dump()));
             }
         }
 

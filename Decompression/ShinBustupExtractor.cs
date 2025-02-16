@@ -158,12 +158,12 @@ namespace ShinDataUtil.Decompression
 
             for (var j = offsetY; j < offsetY + height; j++)
             {
-                var row = image.GetPixelRowSpan(j);
+                var row = image.DangerousGetPixelRowMemory(j).Span;
                 for (var i = offsetX; i < offsetX + width; i++)
                 {
                     if (!ba[i - offsetX + (j - offsetY) * width])
                     //if (!vertices.Any(_ => _.Contains(i - offsetX, j - offsetY)))
-                        row[i] = Rgba32.Transparent;
+                        row[i] = Color.Transparent;
                 }
             }
         }
