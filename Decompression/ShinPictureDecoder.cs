@@ -10,9 +10,9 @@ using Newtonsoft.Json;
 using ShinDataUtil.Common;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SixLabors.Primitives;
 
 namespace ShinDataUtil.Decompression
 {
@@ -58,10 +58,10 @@ namespace ShinDataUtil.Decompression
             // (mainly to make round-trip tests work)
             for (var j = 0; j < image.Height; j++)
             {
-                var row = image.GetPixelRowSpan(j);
+                var row = image.DangerousGetPixelRowMemory(j).Span;
                 for (var i = 0; i < image.Width; i++)
                     if (row[i].A == 0)
-                        row[i] = Rgba32.Transparent;
+                        row[i] = Color.Transparent;
             }
 
             return (image, (header.effectiveWidth, header.effectiveHeight), header.field20 != 0);
@@ -103,9 +103,9 @@ namespace ShinDataUtil.Decompression
             var fragmentsOverlay = new Image<Rgba32>(header.effectiveWidth, header.effectiveHeight);
             var colors = new[]
             {
-                Rgba32.Blue, Rgba32.Brown, Rgba32.Gray, Rgba32.Lime,
-                Rgba32.Aquamarine, Rgba32.IndianRed, Rgba32.LightSkyBlue, Rgba32.Gold, 
-                Rgba32.Azure, Rgba32.Coral, 
+                Color.Blue, Color.Brown, Color.Gray, Color.Lime,
+                Color.Aquamarine, Color.IndianRed, Color.LightSkyBlue, Color.Gold, 
+                Color.Azure, Color.Coral, 
             };
             var colorIndex = 0;
             

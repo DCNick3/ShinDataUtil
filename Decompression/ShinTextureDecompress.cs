@@ -47,14 +47,14 @@ namespace ShinDataUtil.Decompression
         {
             if (height > 0)
             {
-                var firstRow = MemoryMarshal.Cast<Rgba32, byte>(destination.GetPixelRowSpan(dy)[dx..]);
+                var firstRow = MemoryMarshal.Cast<Rgba32, byte>(destination.DangerousGetPixelRowMemory(dy)[dx..].Span);
                 input[..(width*4)].CopyTo(firstRow);
                 input = input[inputStride..];
 
                 for (int j = 1; j < height; j++)
                 {
-                    var previousRow = MemoryMarshal.Cast<Rgba32, byte>(destination.GetPixelRowSpan(dy + j - 1)[dx..]);
-                    var row = MemoryMarshal.Cast<Rgba32, byte>(destination.GetPixelRowSpan(dy + j)[dx..]);
+                    var previousRow = MemoryMarshal.Cast<Rgba32, byte>(destination.DangerousGetPixelRowMemory(dy + j - 1)[dx..].Span);
+                    var row = MemoryMarshal.Cast<Rgba32, byte>(destination.DangerousGetPixelRowMemory(dy + j)[dx..].Span);
                     for (var i = 0; i < width * 4; i++)
                         row[i] = (byte)(previousRow[i] + input[i]);
                     input = input[inputStride..];

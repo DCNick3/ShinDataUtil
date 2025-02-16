@@ -13,7 +13,6 @@ using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SixLabors.ImageSharp.Processing.Processors.Quantization;
-using SixLabors.Primitives;
 
 namespace ShinDataUtil.Compression
 {
@@ -80,7 +79,7 @@ namespace ShinDataUtil.Compression
                 effectiveHeight -= dy + height - source.Height;
             if (height > 0)
             {
-                var firstRow = source.GetPixelRowSpan(dy).Slice(dx, effectiveWidth);
+                var firstRow = source.DangerousGetPixelRowMemory(dy).Span.Slice(dx, effectiveWidth);
                 firstRow.CopyTo(MemoryMarshal.Cast<byte, Rgba32>(data)[..(effectiveWidth * 4)]);
                 for (var i = effectiveWidth; i < width; i++)
                     // repeat the same stuff
@@ -90,8 +89,8 @@ namespace ShinDataUtil.Compression
 
                 for (var j = 1; j < effectiveHeight; j++)
                 {
-                    var previousRow = MemoryMarshal.Cast<Rgba32, byte>(source.GetPixelRowSpan(dy + j - 1)[dx..]);
-                    var row = MemoryMarshal.Cast<Rgba32, byte>(source.GetPixelRowSpan(dy + j)[dx..]);
+                    var previousRow = MemoryMarshal.Cast<Rgba32, byte>(source.DangerousGetPixelRowMemory(dy + j - 1).Span[dx..]);
+                    var row = MemoryMarshal.Cast<Rgba32, byte>(source.DangerousGetPixelRowMemory(dy + j).Span[dx..]);
                     for (var i = 0; i < effectiveWidth * 4; i++)
                     {
                         data[i] = (byte) (row[i] - previousRow[i]);
@@ -177,13 +176,13 @@ namespace ShinDataUtil.Compression
                 var subimg = new Image<Rgba32>(width, height);
                 for (var j = 0; j < height; j++)
                 {
-                    var srcRow = image.GetPixelRowSpan(Math.Min(dy + j, image.Height - 1))[dx..];
-                    var row = subimg.GetPixelRowSpan(j);
+                    var srcRow = image.DangerousGetPixelRowMemory(Math.Min(dy + j, image.Height - 1)).Span[dx..];
+                    var row = subimg.DangerousGetPixelRowMemory(j).Span;
                     for (var i = 0; i < width; i++)
                     {
                         var v = srcRow[Math.Min(i, srcRow.Length - 1)];
                         if (v.A == 0)
-                            v = Rgba32.Transparent;
+                            v = Color.Transparent;
                         if (fragmentCompressionConfig.LosslessAlpha)
                             v.A = 255;
 
@@ -193,13 +192,18 @@ namespace ShinDataUtil.Compression
 
                 subimg.Mutate(o =>
                 {
-                    o.Quantize(new WuQuantizer(fragmentCompressionConfig.Dither ? KnownDiffusers.FloydSteinberg : null, 256));
+                    o.Quantize(new WuQuantizer(new QuantizerOptions
+                        {
+                            Dither = fragmentCompressionConfig.Dither ? KnownDitherings.FloydSteinberg : null,
+                            MaxColors = 256
+                        }
+                    ));
                 });
                 
                 for (var j = 0; j < height; j++)
                 {
-                    var srcRow = image.GetPixelRowSpan(Math.Min(dy + j, image.Height - 1))[dx..];
-                    var row = subimg.GetPixelRowSpan(j);
+                    var srcRow = image.DangerousGetPixelRowMemory(Math.Min(dy + j, image.Height - 1)).Span[dx..];
+                    var row = subimg.DangerousGetPixelRowMemory(j).Span;
                     for (var i = 0; i < width; i++)
                     {
                         var v = srcRow[Math.Min(i, srcRow.Length - 1)];

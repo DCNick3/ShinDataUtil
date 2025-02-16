@@ -13,6 +13,7 @@ using Newtonsoft.Json;
 using ShinDataUtil.Common;
 using ShinDataUtil.Decompression;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -92,7 +93,7 @@ namespace ShinDataUtil.Compression
                     Name = JsonConvert.DeserializeObject<string>(m.Groups[3].Value)
                 };
                 using var fs = File.OpenRead(Path.Combine(sourceDirectory, res.Name + ".png"));
-                res.Image = Image.Load<Rgba32>(fs, new PngDecoder());
+                res.Image = PngDecoder.Instance.Decode<Rgba32>(new DecoderOptions(), fs);
                 return res;
             }).OrderBy(_ => _.Index).ToImmutableArray();
 
