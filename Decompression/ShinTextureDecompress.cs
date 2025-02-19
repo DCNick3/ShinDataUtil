@@ -29,7 +29,7 @@ namespace ShinDataUtil.Decompression
                     var v = dictionary[input[i]];
                     if (inputAlpha.Length > 0)
                     {
-                        Debug.Assert(v.A == 255);
+                        Debug.Assert(v.A == 255 || v.A == 0);
                         v.A = inputAlpha[i];
                     }
 

@@ -273,7 +273,7 @@ namespace ShinDataUtil.Compression
             var header = new PicHeader
             {
                 magic = 0x34434950,
-                version = 2,
+                version = fragmentCompressionConfig.IsVersion3 ? 3u : 2u,
                 // fileSize!
                 effectiveHeight = checked((ushort)effectiveHeight),
                 effectiveWidth = checked((ushort)effectiveWidth),
@@ -284,7 +284,8 @@ namespace ShinDataUtil.Compression
                 pictureId = pictureId
             };
 
-            var dataOffset = sizeof(PicHeader) + fragments.Length * sizeof(PicHeaderFragmentEntry);
+            var dataOffset = sizeof(PicHeader) + (fragmentCompressionConfig.IsVersion3 ? 4 : 0)
+                + fragments.Length * sizeof(PicHeaderFragmentEntry);
             var currentOffset = dataOffset;
             outpic.Seek(dataOffset, SeekOrigin.Begin);
 
@@ -318,6 +319,8 @@ namespace ShinDataUtil.Compression
             outpic.Seek(0, SeekOrigin.Begin);
             header.fileSize = checked((uint)currentOffset);
             outpic.Write(SpanUtil.AsBytes(ref header));
+            if (fragmentCompressionConfig.IsVersion3)
+                outpic.Write([0, 16, 0, 0]);
             outpic.Write(MemoryMarshal.Cast<PicHeaderFragmentEntry, byte>(fragmentEntriesArray.AsSpan()));
             
             Trace.Assert(dataOffset == outpic.Position);

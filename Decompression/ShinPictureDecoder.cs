@@ -26,17 +26,21 @@ namespace ShinDataUtil.Decompression
         public static (Image<Rgba32>, (int effectiveWidth, int effectiveHeight), bool field20) DecodePicture(ReadOnlySpan<byte> picture)
         {
             var header = MemoryMarshal.Read<PicHeader>(picture);
-            var entriesData = MemoryMarshal.Cast<byte, PicHeaderFragmentEntry>(
-                picture[Marshal.SizeOf<PicHeader>()..]);
 
             Trace.Assert(header.magic == 0x34434950);
-            Trace.Assert(header.version == 2);
+            Trace.Assert(header.version == 2 || header.version == 3);
             Trace.Assert(header.fileSize == picture.Length);
             Trace.Assert(header.originX == header.effectiveWidth / 2);
             Trace.Assert(header.originY == header.effectiveHeight 
                          || header.originY == header.effectiveHeight / 2
                          || header.originY == 0);
             Trace.Assert(header.field20 == 1 || header.field20 == 0);
+
+            int entryStart = Marshal.SizeOf<PicHeader>();
+            if (header.version == 3)
+                // magic field32 of version 3
+                entryStart += 4;
+            var entriesData = MemoryMarshal.Cast<byte, PicHeaderFragmentEntry>(picture[entryStart..]);
             
             var entries = new PicHeaderFragmentEntry[header.entryCount];
             for (var i = 0; i < entries.Length; i++)

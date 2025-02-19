@@ -391,6 +391,9 @@ namespace ShinDataUtil
                     case "--lossless-alpha":
                         compressionConfig.LosslessAlpha = true;
                         break;
+                    case "--version3":
+                        compressionConfig.IsVersion3 = true;
+                        break;
                     default:
                         throw new ArgumentException($"Unknown option: {opt}");
                 }

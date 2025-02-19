@@ -161,6 +161,7 @@ namespace ShinDataUtil.Compression
             public bool Quantize { get; set; }
             public bool Dither { get; set; }
             public bool LosslessAlpha { get; set; }
+            public bool IsVersion3 { get; set; }
         }
         
         public static unsafe int EncodeImageFragment(Stream outfrag, Image<Rgba32> image,
