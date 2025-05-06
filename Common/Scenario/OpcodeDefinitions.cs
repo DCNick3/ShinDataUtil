@@ -62,7 +62,7 @@ namespace ShinDataUtil.Scenario
                 Opcode.SSET => "n,n",
                 Opcode.WAIT => "b,n",
                 Opcode.MSGINIT => "n",
-                Opcode.MSGSET => "i,lstr",
+                Opcode.MSGSET => "mi,b,lstr",
                 Opcode.MSGWAIT => "n",
                 Opcode.MSGSIGNAL => "",
                 Opcode.MSGCLOSE => "b",
